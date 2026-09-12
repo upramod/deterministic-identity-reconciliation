@@ -29,14 +29,17 @@ Consider this synthetic sequence:
 
 | Event | Effective time | Delivery time |
 | --- | --- | --- |
-| Hire | February 1 | January 10 |
+| Hire | January 1 | January 1 |
 | Termination | January 25 | February 5 |
-| Old profile update | February 1 | February 6 |
+| Old profile update | January 20 | February 6 |
 
-The profile update was created before the termination decision, but it arrived
-later. A handler that applies messages in delivery order can write stale
-attributes after the account should be disabled. Replaying the same records
-can also produce a different result from the first run.
+The profile update describes an earlier state, but it arrives after the
+termination. A handler that applies messages in delivery order can write stale
+attributes after the account should be disabled. Different delivery orders can
+therefore leave different final states.
+
+The required result is an inactive account. The late profile update must not
+undo the termination.
 
 This project uses a different boundary:
 
