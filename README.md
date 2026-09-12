@@ -11,6 +11,52 @@ This repository is an engineering reference, not a complete identity
 governance product. It contains no vendor credentials, production data, or
 employer-specific implementation.
 
+## The problem
+
+Enterprise identity systems rarely receive a clean command stream. They
+receive physical records from HR, directories, and lifecycle systems. Those
+records can be duplicated, corrected, delayed, or delivered out of order.
+
+A direct message handler treats each record as an instruction:
+
+```text
+receive event -> mutate target account
+```
+
+That model is unsafe.
+
+Consider this synthetic sequence:
+
+| Event | Effective time | Delivery time |
+| --- | --- | --- |
+| Hire | February 1 | January 10 |
+| Termination | January 25 | February 5 |
+| Old profile update | February 1 | February 6 |
+
+The profile update was created before the termination decision, but it arrived
+later. A handler that applies messages in delivery order can write stale
+attributes after the account should be disabled. Replaying the same records
+can also produce a different result from the first run.
+
+This project uses a different boundary:
+
+```text
+physical events
+    -> canonical facts
+    -> freshness comparison
+    -> desired identity state
+    -> guarded target convergence
+```
+
+The resolver records the source fact, separates effective time from delivery
+time, compares revisions using an explicit freshness tuple, and writes the
+canonical projection with an atomic compare-and-set operation. The target
+adapter reads the observed account before issuing a mutation.
+
+The repository is a reference implementation of these control points. It is
+not a complete identity product. It does not provide provider credentials,
+production scheduling, deployment-specific policy, or a full audit archive.
+
 ## Quick start
 
 Requires Go 1.22 or newer.
