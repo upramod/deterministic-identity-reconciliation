@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/upramod/deterministic-identity-reconciliation/blob/main/schemas/physical-event.schema.json",
+  "title": "Physical identity lifecycle event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_key",
+    "subject_id",
+    "event_type",
+    "source_scope",
+    "effective_time",
+    "modification_time",
+    "source_sequence",
+    "revision_number",
+    "payload"
+  ],
+  "properties": {
+    "event_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "hire",
+        "rehire",
+        "data_update",
+        "leave",
+        "return_from_leave",
+        "conversion",
+        "transfer",
+        "termination"
+      ]
+    },
+    "source_scope": {
+      "type": "string",
+      "enum": [
+        "hire_snapshot",
+        "lifecycle"
+      ]
+    },
+    "effective_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "modification_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "revision_number": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}

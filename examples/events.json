@@ -1,0 +1,77 @@
+[
+  {
+    "event_key": "evt-ava-hire-v1",
+    "subject_id": "person-001",
+    "event_type": "hire",
+    "source_scope": "hire_snapshot",
+    "effective_time": "2026-09-10T00:00:00Z",
+    "modification_time": "2026-09-01T10:00:00Z",
+    "source_sequence": 10,
+    "revision_number": 0,
+    "payload": {
+      "attributes": {
+        "email": "ava@example.test",
+        "department": "engineering"
+      }
+    }
+  },
+  {
+    "event_key": "evt-ava-hire-v2",
+    "subject_id": "person-001",
+    "event_type": "hire",
+    "source_scope": "hire_snapshot",
+    "effective_time": "2026-09-10T00:00:00Z",
+    "modification_time": "2026-09-02T10:00:00Z",
+    "source_sequence": 11,
+    "revision_number": 0,
+    "payload": {
+      "attributes": {
+        "email": "ava@example.test",
+        "department": "platform-engineering"
+      }
+    }
+  },
+  {
+    "event_key": "evt-ava-profile-001",
+    "subject_id": "person-001",
+    "event_type": "data_update",
+    "source_scope": "lifecycle",
+    "effective_time": "2026-09-11T00:00:00Z",
+    "modification_time": "2026-09-11T10:00:00Z",
+    "source_sequence": 12,
+    "revision_number": 0,
+    "payload": {
+      "attributes": {
+        "title": "senior-engineer"
+      }
+    }
+  },
+  {
+    "event_key": "evt-ava-profile-001",
+    "subject_id": "person-001",
+    "event_type": "data_update",
+    "source_scope": "lifecycle",
+    "effective_time": "2026-09-11T00:00:00Z",
+    "modification_time": "2026-09-11T10:00:00Z",
+    "source_sequence": 12,
+    "revision_number": 0,
+    "payload": {
+      "attributes": {
+        "title": "senior-engineer"
+      }
+    }
+  },
+  {
+    "event_key": "evt-ava-termination-future",
+    "subject_id": "person-001",
+    "event_type": "termination",
+    "source_scope": "lifecycle",
+    "effective_time": "2026-09-20T00:00:00Z",
+    "modification_time": "2026-09-11T12:00:00Z",
+    "source_sequence": 13,
+    "revision_number": 0,
+    "payload": {
+      "attributes": {}
+    }
+  }
+]

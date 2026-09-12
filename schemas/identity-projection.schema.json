@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/upramod/deterministic-identity-reconciliation/blob/main/schemas/identity-projection.schema.json",
+  "title": "Desired identity projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "subject_id",
+    "exists",
+    "enabled",
+    "lifecycle_state",
+    "attributes",
+    "source_fact_key",
+    "source_event_key",
+    "effective_time",
+    "freshness"
+  ],
+  "properties": {
+    "subject_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "exists": {
+      "type": "boolean"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "active",
+        "on_leave",
+        "terminated"
+      ]
+    },
+    "attributes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "source_fact_key": {
+      "type": "string"
+    },
+    "source_event_key": {
+      "type": "string"
+    },
+    "effective_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_sequence",
+        "modification_time",
+        "revision_number",
+        "physical_event_key"
+      ],
+      "properties": {
+        "source_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "modification_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revision_number": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "physical_event_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "row_version": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
