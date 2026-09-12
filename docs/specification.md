@@ -100,9 +100,10 @@ The projection contains:
 - a durable row version.
 
 Hire and rehire create an active identity. Leave disables the identity while
-retaining it. Return from leave re-enables it. Termination removes the desired
+retaining it. Return from leave re-enables it. Termination disables the desired
 account and marks the lifecycle state as terminated. Data updates, transfers,
-and conversions change attributes but do not infer account existence.
+and conversions change attributes but do not infer account existence. Physical
+deletion, if required by a target, belongs to an explicit provider policy.
 
 ## 7. Target convergence
 

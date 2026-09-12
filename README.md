@@ -92,6 +92,7 @@ read-before-write target adapter
 
 The pure engine lives in pkg/reconcile. It has no database or network
 dependency. PostgreSQL persistence lives in pkg/store/postgres.
+The generic SCIM adapter lives in pkg/adapter/scim.
 
 ## PostgreSQL persistence
 
@@ -123,6 +124,7 @@ interoperability tests.
 ```text
 cmd/reconcile/          runnable JSON example
 pkg/reconcile/           pure canonicalization and projection engine
+pkg/adapter/scim/        read-before-write SCIM Users adapter
 pkg/store/postgres/      database/sql persistence boundary
 schema/                  PostgreSQL DDL
 examples/                synthetic events

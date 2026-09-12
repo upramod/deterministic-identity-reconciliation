@@ -116,7 +116,7 @@ func TestProjectionUsesEffectiveTimeNotEventKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	projection := result.Projections["person-001"]
-	if projection.LifecycleState != StateTerminated || projection.Exists {
+	if projection.LifecycleState != StateTerminated || !projection.Exists || projection.Enabled {
 		t.Fatalf("projection ignored effective-time order: %#v", projection)
 	}
 }

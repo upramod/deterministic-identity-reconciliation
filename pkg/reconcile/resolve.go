@@ -156,7 +156,7 @@ func applyFact(projection *IdentityProjection, fact CanonicalFact) {
 		projection.Enabled = true
 		projection.LifecycleState = StateActive
 	case EventTermination:
-		projection.Exists = false
+		projection.Exists = true
 		projection.Enabled = false
 		projection.LifecycleState = StateTerminated
 	case EventDataUpdate, EventConversion, EventTransfer:

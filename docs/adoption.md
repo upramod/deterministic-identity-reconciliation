@@ -23,6 +23,11 @@ reference decisions for:
 Use the pure package at the source-to-projection boundary. Keep provider API
 calls in a target adapter. Keep scheduling outside the pure resolver.
 
+The repository includes a generic SCIM Users adapter. Configure only the
+attributes that the integrating project owns. The adapter reads the resource
+before every mutation and defaults to setting active to false for
+deprovisioning.
+
 A first integration should be small enough to review as one pull request. The
 integration must document:
 
