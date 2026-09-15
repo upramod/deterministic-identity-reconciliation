@@ -11,6 +11,25 @@ This repository is an engineering reference, not a complete identity
 governance product. It contains no vendor credentials, production data, or
 employer-specific implementation.
 
+## Paper
+
+This reference implementation accompanies:
+
+**Pramod Ubbala, “Deterministic Temporal Reconciliation for Effective-Dated Identity Lifecycle Events,” arXiv:2609.14017, 2026.**
+
+Paper: https://arxiv.org/abs/2609.14017
+
+```bibtex
+@misc{ubbala2026deterministic,
+  title={Deterministic Temporal Reconciliation for Effective-Dated Identity Lifecycle Events},
+  author={Ubbala, Pramod},
+  year={2026},
+  eprint={2609.14017},
+  archivePrefix={arXiv},
+  primaryClass={cs.SE}
+}
+```
+
 ## The problem
 
 Enterprise identity systems rarely receive a clean command stream. They
