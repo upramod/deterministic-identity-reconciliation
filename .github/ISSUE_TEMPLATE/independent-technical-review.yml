@@ -1,0 +1,71 @@
+name: Independent technical review
+description: Record a reproducible evaluation of the reconciliation contract
+title: "Review: "
+labels:
+  - independent-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for evaluating the project. Do not include credentials, personal data, production logs, or confidential records.
+  - type: input
+    id: role
+    attributes:
+      label: Professional role and relevant experience
+      description: Describe the experience that informs this review. Organization name is optional.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA reviewed
+      placeholder: 40-character Git commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Evaluation environment
+      description: Include Go version and operating system.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Commands and scenarios examined
+      description: List the tests, fixtures, paper sections, or contract sections you reviewed.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Reproduced results
+      description: State what passed, failed, or differed from the documented behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Defects, limitations, or disputed claims
+      description: Identify unsafe assumptions, missing cases, or claims that need correction.
+    validations:
+      required: true
+  - type: textarea
+    id: relevance
+    attributes:
+      label: Relevance outside this repository
+      description: Explain whether the evaluated failure modes occur in other workforce identity systems and why.
+    validations:
+      required: true
+  - type: textarea
+    id: reuse
+    attributes:
+      label: Reuse, pilot, adaptation, or citation
+      description: If applicable, describe any concrete use or intended use. Leave blank if none.
+  - type: checkboxes
+    id: attestation
+    attributes:
+      label: Review declaration
+      options:
+        - label: I performed this review independently and reported the observed results accurately.
+          required: true
