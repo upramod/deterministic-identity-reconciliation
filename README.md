@@ -79,6 +79,11 @@ The repository is a reference implementation of these control points. It is
 not a complete identity product. It does not provide provider credentials,
 production scheduling, deployment-specific policy, or a full audit archive.
 
+Independent reviewers can use the executable scenario matrix in
+[`docs/evaluation-scenarios.md`](docs/evaluation-scenarios.md). The matrix also
+lists production-oriented behaviors that version 0.1 does not implement, so
+the public evidence does not imply unsupported coverage.
+
 ## Quick start
 
 Requires Go 1.22 or newer.
