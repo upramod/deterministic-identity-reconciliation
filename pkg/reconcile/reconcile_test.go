@@ -177,6 +177,117 @@ func TestFutureRules(t *testing.T) {
 	}
 }
 
+func TestRehireAfterTerminationRestoresActiveIdentity(t *testing.T) {
+	now := testTime("2026-09-12T00:00:00Z")
+	result, err := ResolveBatch([]PhysicalEvent{
+		event("hire", EventHire, SourceHireSnapshot, "2026-01-01T00:00:00Z", "2025-12-20T00:00:00Z", 1, nil),
+		event("termination", EventTermination, SourceLifecycle, "2026-05-01T00:00:00Z", "2026-04-20T00:00:00Z", 2, nil),
+		event("rehire", EventRehire, SourceHireSnapshot, "2026-09-01T00:00:00Z", "2026-08-20T00:00:00Z", 3, map[string]any{"department": "security"}),
+	}, DefaultPolicy(now))
+	if err != nil {
+		t.Fatal(err)
+	}
+	projection := result.Projections["person-001"]
+	if !projection.Exists || !projection.Enabled || projection.LifecycleState != StateActive {
+		t.Fatalf("rehire did not restore active identity: %#v", projection)
+	}
+	if projection.Attributes["department"] != "security" {
+		t.Fatalf("rehire attributes were not projected: %#v", projection.Attributes)
+	}
+}
+
+func TestLeaveAndReturnFromLeavePreserveIdentity(t *testing.T) {
+	now := testTime("2026-09-12T00:00:00Z")
+	policy := DefaultPolicy(now)
+	base := event("hire", EventHire, SourceHireSnapshot, "2026-01-01T00:00:00Z", "2025-12-20T00:00:00Z", 1, nil)
+	leave := event("leave", EventLeave, SourceLifecycle, "2026-06-01T00:00:00Z", "2026-05-20T00:00:00Z", 2, nil)
+
+	onLeave, err := ResolveBatch([]PhysicalEvent{base, leave}, policy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leaveProjection := onLeave.Projections["person-001"]
+	if !leaveProjection.Exists || leaveProjection.Enabled || leaveProjection.LifecycleState != StateOnLeave {
+		t.Fatalf("leave did not retain and disable identity: %#v", leaveProjection)
+	}
+
+	returned, err := ResolveBatch([]PhysicalEvent{
+		base,
+		leave,
+		event("return", EventReturnFromLeave, SourceLifecycle, "2026-08-01T00:00:00Z", "2026-07-20T00:00:00Z", 3, nil),
+	}, policy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	returnProjection := returned.Projections["person-001"]
+	if !returnProjection.Exists || !returnProjection.Enabled || returnProjection.LifecycleState != StateActive {
+		t.Fatalf("return from leave did not reactivate identity: %#v", returnProjection)
+	}
+}
+
+func TestCutoffDistinguishesStaleAndRecentCorrections(t *testing.T) {
+	now := testTime("2026-09-12T00:00:00Z")
+	cutoff := testTime("2026-09-01T00:00:00Z")
+	policy := DefaultPolicy(now)
+	policy.CutoffTime = &cutoff
+
+	stale := event("stale", EventDataUpdate, SourceLifecycle, "2026-08-01T00:00:00Z", "2026-09-01T00:00:00Z", 1, nil)
+	recent := event("recent", EventDataUpdate, SourceLifecycle, "2026-08-02T00:00:00Z", "2026-09-11T00:00:00Z", 2, nil)
+	result, err := ResolveBatch([]PhysicalEvent{stale, recent}, policy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decisions := decisionByEventKey(result.Decisions)
+	if decisions["stale"].Action != ActionSkip || decisions["stale"].Reason != ReasonPreCutoff {
+		t.Fatalf("stale pre-cutoff fact = %s/%s", decisions["stale"].Action, decisions["stale"].Reason)
+	}
+	if decisions["recent"].Action != ActionProcessNow || decisions["recent"].Reason != ReasonAcceptedRetroactive {
+		t.Fatalf("recent correction = %s/%s", decisions["recent"].Action, decisions["recent"].Reason)
+	}
+}
+
+func TestPastEndGraceRejectsExpiredFact(t *testing.T) {
+	now := testTime("2026-09-12T00:00:00Z")
+	expiredEnd := testTime("2026-09-01T00:00:00Z")
+	withinGraceEnd := testTime("2026-09-10T00:00:00Z")
+	expired := event("expired", EventDataUpdate, SourceLifecycle, "2026-08-01T00:00:00Z", "2026-09-11T00:00:00Z", 1, nil)
+	expired.EndTime = &expiredEnd
+	withinGrace := event("within-grace", EventDataUpdate, SourceLifecycle, "2026-08-02T00:00:00Z", "2026-09-11T00:00:00Z", 2, nil)
+	withinGrace.EndTime = &withinGraceEnd
+
+	result, err := ResolveBatch([]PhysicalEvent{expired, withinGrace}, DefaultPolicy(now))
+	if err != nil {
+		t.Fatal(err)
+	}
+	decisions := decisionByEventKey(result.Decisions)
+	if decisions["expired"].Action != ActionSkip || decisions["expired"].Reason != ReasonPastEndTime {
+		t.Fatalf("expired fact = %s/%s", decisions["expired"].Action, decisions["expired"].Reason)
+	}
+	if decisions["within-grace"].Action != ActionProcessNow || decisions["within-grace"].Reason != ReasonAccepted {
+		t.Fatalf("within-grace fact = %s/%s", decisions["within-grace"].Action, decisions["within-grace"].Reason)
+	}
+}
+
+func TestHigherRevisionBreaksEqualSequenceAndModificationTie(t *testing.T) {
+	now := testTime("2026-09-12T00:00:00Z")
+	older := event("correction-v1", EventDataUpdate, SourceLifecycle, "2026-09-10T00:00:00Z", "2026-09-11T00:00:00Z", 10, map[string]any{"title": "engineer"})
+	newer := event("correction-v2", EventDataUpdate, SourceLifecycle, "2026-09-10T00:00:00Z", "2026-09-11T00:00:00Z", 10, map[string]any{"title": "senior-engineer"})
+	older.RevisionNumber = 1
+	newer.RevisionNumber = 2
+
+	result, err := ResolveBatch([]PhysicalEvent{newer, older}, DefaultPolicy(now))
+	if err != nil {
+		t.Fatal(err)
+	}
+	decisions := decisionByEventKey(result.Decisions)
+	if decisions["correction-v1"].Reason != ReasonDuplicateOrOlder {
+		t.Fatalf("older correction reason = %s", decisions["correction-v1"].Reason)
+	}
+	if result.Projections["person-001"].Attributes["title"] != "senior-engineer" {
+		t.Fatalf("higher revision did not win: %#v", result.Projections["person-001"].Attributes)
+	}
+}
+
 func TestReadBeforeWriteConvergence(t *testing.T) {
 	desired := IdentityProjection{
 		SubjectID:      "person-001",
