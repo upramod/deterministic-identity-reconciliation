@@ -84,6 +84,10 @@ Independent reviewers can use the executable scenario matrix in
 lists production-oriented behaviors that version 0.1 does not implement, so
 the public evidence does not imply unsupported coverage.
 
+The [`independent technical review guide`](docs/external-review.md) provides a
+short reproduction procedure, focused review questions, and a structured way
+to record limitations and possible use outside this repository.
+
 ## Quick start
 
 Requires Go 1.22 or newer.
