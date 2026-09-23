@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added the permanent Zenodo DOI for the archived version 0.2.0 source release.
+
 ## 0.2.0 - 2026-09-23
 
 - Added executable evaluation cases for rehire after termination, leave and
