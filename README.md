@@ -11,6 +11,16 @@ This repository is an engineering reference, not a complete identity
 governance product. It contains no vendor credentials, production data, or
 employer-specific implementation.
 
+## Cite the software
+
+The archived version 0.2.0 source release is available from Zenodo:
+
+- Version 0.2.0: https://doi.org/10.5281/zenodo.22907927
+- All versions: https://doi.org/10.5281/zenodo.22907926
+
+The repository also contains [`CITATION.cff`](CITATION.cff) with citation
+metadata for the software release and accompanying paper.
+
 ## Paper
 
 This reference implementation accompanies:
