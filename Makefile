@@ -1,4 +1,4 @@
-.PHONY: format format-check test vet check example
+.PHONY: format format-check test vet check example evaluate
 
 format:
 	find . -name '*.go' -print0 | xargs -0 gofmt -w
@@ -16,3 +16,6 @@ check: format-check vet test
 
 example:
 	go run ./cmd/reconcile -input examples/events.json -now 2026-09-12T00:00:00Z
+
+evaluate:
+	@python3 scripts/evaluate.py

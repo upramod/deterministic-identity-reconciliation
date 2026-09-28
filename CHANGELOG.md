@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a before-and-after evaluator for the four safety regressions, with
+  source provenance and explicit expected failures on the pinned baseline.
 - Reject empty or colliding normalized attribute names before projection.
 - Preserve JSON payload numbers in the CLI without converting them to
   floating point, while continuing to reject trailing JSON content.

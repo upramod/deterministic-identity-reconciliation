@@ -39,6 +39,50 @@ git rev-parse HEAD
 go version
 ```
 
+## Reproduce the four safety regressions
+
+The unreleased fixes in [PR #6](https://github.com/upramod/deterministic-identity-reconciliation/pull/6)
+include a before-and-after evaluator. It requires Python 3, Git, and Go 1.22
+or newer. From the repository checkout:
+
+```sh
+git fetch origin pull/6/head
+git switch --detach FETCH_HEAD
+make evaluate > evaluation.json
+```
+
+The command exits successfully only when all four named regression groups fail
+on the pinned baseline and pass on the candidate. It records the resolved
+source commits and trees, Go version, commands, and observed test outcomes in
+`evaluation.json`. Compiler errors or missing expected test results do not
+count as reproduced defects.
+
+The baseline is commit `23e702926408c789ce0129ce25dc6df93613d173`. The runner
+exports the baseline and candidate to temporary directories, then copies the
+candidate's regression test files into the baseline. It does not copy the
+production fixes into the baseline or change the working checkout. Once source
+commits and the Go toolchain are available, the evaluation needs no remote
+provider, credentials, or production data.
+
+To repeat a result against an exact recorded revision, use
+`python3 scripts/evaluate.py --candidate <recorded-commit-SHA>`.
+The [September 28 author-run report](evidence/safety-evaluation-2026-09-28.json)
+records four expected failures on the baseline and four passing groups on
+candidate `f768d0b6e25a2a2712d7fec57847bf89efe66d9f`. It is an example of the
+report format, not an independent evaluation.
+
+| Regression | Baseline failure | Corrected behavior |
+| --- | --- | --- |
+| Partial SCIM lookup | A partial page can trigger an account mutation without a unique match | Invalid or ambiguous result metadata stops the write |
+| Empty-valued attribute keys | Different keys can compare equal and skip a needed write | Key presence participates in equivalence |
+| Attribute-name collision | Distinct input keys can collapse after whitespace trimming | The event is rejected before projection |
+| Large numeric identifier | Adjacent large integers can become the same value and hash | CLI decoding preserves exact numeric input |
+
+Inspect the tests and JSON report before accepting the result. These are
+synthetic, author-supplied regression cases, not a live-provider compatibility
+test or evidence of adoption. An outside reviewer should add a source-specific
+case and record any disagreement with the contract.
+
 ## Core review questions
 
 1. Does the freshness tuple produce deterministic results under reordered and
