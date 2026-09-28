@@ -4,7 +4,7 @@ This matrix lets an independent reviewer distinguish implemented, executable
 behavior from lifecycle rules that remain outside version 0.1 of the reference
 contract. Run the executable cases with `go test ./...`.
 
-| Scenario | Expected invariant | Evidence in version 0.1 |
+| Scenario | Expected invariant | Evidence in the current source checkout |
 | --- | --- | --- |
 | Duplicate delivery | An exact replay cannot cause a second transition | `TestCanonicalHashIgnoresDeliveryTime`; duplicate example fixture |
 | Reordered delivery | Input permutation cannot change the desired projection | `TestResolveBatchIsPermutationInvariant` |
@@ -17,6 +17,13 @@ contract. Run the executable cases with `go test ./...`.
 | Retroactive correction | A recent correction may cross the cutoff; a stale one cannot | `TestCutoffDistinguishesStaleAndRecentCorrections` |
 | Expired bounded fact | A fact beyond the past-end grace cannot alter current state | `TestPastEndGraceRejectsExpiredFact` |
 | Read-before-write convergence | Equivalent target state produces no write | `TestReadBeforeWriteConvergence` |
+| Empty-valued attribute keys | Different attribute names cannot compare equal merely because values are empty | `TestConvergeDistinguishesMissingAndEmptyAttributes` |
+| Partial or ambiguous SCIM lookup | An unconfirmed account match cannot trigger a mutation | `TestApplyRejectsIncompleteOrAmbiguousLookup`; `TestApplyCreatesOnlyAfterConfirmedAbsence` |
+| Attribute-name normalization | Colliding or empty trimmed names are rejected before projection | `TestCanonicalizeRejectsAmbiguousAttributeNames`; `TestCanonicalizeTrimsUnambiguousAttributeName` |
+| Large numeric identifiers | CLI decoding preserves the exact value and distinguishes adjacent identifiers | `TestReadEventsPreservesLargeNumericIdentifiers` |
+
+The last four rows describe unreleased safety fixes. They do not describe the
+archived version 0.2.0 release. Record the tested commit when reporting results.
 
 ## Explicit version 0.1 boundaries
 

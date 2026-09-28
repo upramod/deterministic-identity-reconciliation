@@ -35,6 +35,22 @@ Canonicalization trims identifiers, normalizes event and scope values, converts
 timestamps to UTC, extracts scalar target attributes, and computes a SHA-256
 payload hash.
 
+Attribute names are trimmed. An empty trimmed name or two distinct input names
+that trim to the same name makes the event invalid. This applies even when the
+values match or a value is non-scalar and would otherwise be ignored. Rejecting
+the whole event prevents map iteration order from selecting a target attribute.
+Canonicalization examines input names in lexical order so errors are stable.
+Distinct, nonempty trimmed names retain the existing scalar-value extraction
+rules; whitespace around an otherwise unambiguous name remains accepted.
+
+The CLI preserves JSON payload numbers as `json.Number`. Numeric attributes
+retain their input spelling instead of passing through `float64`; large
+integer identifiers therefore remain exact. This also means `1`, `1.0`, and
+`1e0` produce distinct attribute strings and payload hashes. Sources must use
+a stable numeric representation for exact replay, or encode identifiers as
+strings. Library callers that decode their own input must preserve numeric
+precision before calling the engine.
+
 The delivery clock is attached during canonicalization as received_at. It is
 not part of the payload hash or the freshness tuple.
 

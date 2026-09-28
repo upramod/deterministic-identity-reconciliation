@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Reject empty or colliding normalized attribute names before projection.
+- Preserve JSON payload numbers in the CLI without converting them to
+  floating point, while continuing to reject trailing JSON content.
 - Reject ambiguous or incomplete SCIM subject lookups before account writes.
   `totalResults` is required, including for empty results.
 - Compare attribute key presence as well as values when deciding whether a
