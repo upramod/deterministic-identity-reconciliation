@@ -161,16 +161,25 @@ func (a *Adapter) find(ctx context.Context, subjectID string) (map[string]any, e
 	usersURL.RawQuery = query.Encode()
 
 	var response struct {
-		Resources []map[string]any `json:"Resources"`
+		TotalResults *int             `json:"totalResults"`
+		Resources    []map[string]any `json:"Resources"`
 	}
 	if err := a.request(ctx, http.MethodGet, usersURL.String(), nil, &response); err != nil {
 		return nil, fmt.Errorf("find subject %q: %w", subjectID, err)
 	}
+	// count is only a maximum page size, not a guarantee of completeness.
+	// RFC 7644 requires totalResults even when the server returns no matches.
+	if response.TotalResults == nil || *response.TotalResults < 0 {
+		return nil, errors.New("SCIM list response requires a non-negative totalResults")
+	}
+	if *response.TotalResults > 1 {
+		return nil, fmt.Errorf("subject %q matched more than one SCIM resource", subjectID)
+	}
+	if *response.TotalResults != len(response.Resources) {
+		return nil, errors.New("SCIM list response is incomplete or inconsistent with totalResults")
+	}
 	if len(response.Resources) == 0 {
 		return nil, nil
-	}
-	if len(response.Resources) > 1 {
-		return nil, fmt.Errorf("subject %q matched more than one SCIM resource", subjectID)
 	}
 	if resourceID(response.Resources[0]) == "" {
 		return nil, errors.New("SCIM resource did not include an id")

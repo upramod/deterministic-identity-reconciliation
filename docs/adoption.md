@@ -28,6 +28,17 @@ attributes that the integrating project owns. The adapter reads the resource
 before every mutation and defaults to setting active to false for
 deprovisioning.
 
+Subject lookup must establish either no match or exactly one match before the
+adapter writes. The adapter requires a nonnegative `totalResults` in the SCIM
+list response and rejects multiple matches, even when a server returns only
+one resource on the current page. It also rejects missing resources when the
+count indicates a match. These errors stop creation, updates, and
+deprovisioning; they must not be treated as an absent account. This follows the
+list-response contract in [RFC 7644, section 3.4.2](https://www.rfc-editor.org/rfc/rfc7644.html#section-3.4.2).
+
+This check depends on truthful server metadata. It does not lock the remote
+directory or make the lookup and subsequent write atomic.
+
 A first integration should be small enough to review as one pull request. The
 integration must document:
 

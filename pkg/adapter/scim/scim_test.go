@@ -3,6 +3,7 @@ package scim
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -22,7 +23,7 @@ func TestObserveAndReadBeforeWrite(t *testing.T) {
 		if !strings.Contains(request.URL.Query().Get("filter"), "externalId") {
 			t.Fatalf("missing SCIM filter: %s", request.URL.Query().Get("filter"))
 		}
-		_, _ = writer.Write([]byte(`{"Resources":[{"id":"scim-1","externalId":"person-001","active":true,"email":"person@example.test"}]}`))
+		_, _ = writer.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","externalId":"person-001","active":true,"email":"person@example.test"}]}`))
 	}))
 	defer server.Close()
 
@@ -55,7 +56,7 @@ func TestConvergePatchesOnlyWhenStateDiffers(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		switch request.Method {
 		case http.MethodGet:
-			_, _ = writer.Write([]byte(`{"Resources":[{"id":"scim-1","externalId":"person-001","active":true,"email":"person@example.test"}]}`))
+			_, _ = writer.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","externalId":"person-001","active":true,"email":"person@example.test"}]}`))
 		case http.MethodPatch:
 			mu.Lock()
 			patches++
@@ -117,7 +118,7 @@ func TestPatchBodyUsesSCIMOperationShape(t *testing.T) {
 	var received map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method == http.MethodGet {
-			_, _ = writer.Write([]byte(`{"Resources":[{"id":"scim-1","externalId":"person-001","active":true}]}`))
+			_, _ = writer.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","externalId":"person-001","active":true}]}`))
 			return
 		}
 		if request.Method != http.MethodPatch {
@@ -148,5 +149,82 @@ func TestPatchBodyUsesSCIMOperationShape(t *testing.T) {
 	operations := received["Operations"].([]any)
 	if len(operations) != 2 {
 		t.Fatalf("operation count = %d, want 2", len(operations))
+	}
+}
+
+func TestApplyRejectsIncompleteOrAmbiguousLookup(t *testing.T) {
+	for _, response := range []struct {
+		name string
+		body string
+	}{
+		{"ambiguous truncated page", `{"totalResults":2,"startIndex":1,"itemsPerPage":1,"Resources":[{"id":"first-match","active":true}]}`},
+		{"missing resource", `{"totalResults":1,"Resources":[]}`},
+		{"inconsistent empty total", `{"totalResults":0,"Resources":[{"id":"first-match"}]}`},
+		{"empty object", `{}`},
+		{"missing total", `{"Resources":[]}`},
+		{"null total", `{"totalResults":null,"Resources":[]}`},
+		{"negative total", `{"totalResults":-1,"Resources":[]}`},
+	} {
+		for _, mode := range []DeprovisionMode{DeprovisionDisable, DeprovisionDelete} {
+			for _, exists := range []bool{true, false} {
+				t.Run(fmt.Sprintf("%s/%s/exists=%t", response.name, mode, exists), func(t *testing.T) {
+					mutations := 0
+					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if r.Method == http.MethodGet {
+							_, _ = w.Write([]byte(response.body))
+							return
+						}
+						mutations++
+						w.WriteHeader(http.StatusNoContent)
+					}))
+					defer server.Close()
+					adapter, err := New(Config{BaseURL: server.URL, DeprovisionMode: mode})
+					if err != nil {
+						t.Fatal(err)
+					}
+					err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: exists})
+					if err == nil {
+						t.Error("unsafe lookup was accepted")
+					}
+					if mutations != 0 {
+						t.Errorf("unsafe lookup issued %d mutation(s)", mutations)
+					}
+				})
+			}
+		}
+	}
+}
+
+func TestApplyCreatesOnlyAfterConfirmedAbsence(t *testing.T) {
+	for _, status := range []int{http.StatusOK, http.StatusNoContent} {
+		t.Run(fmt.Sprintf("GET status %d", status), func(t *testing.T) {
+			creates := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet {
+					w.WriteHeader(status)
+					if status == http.StatusOK {
+						_, _ = w.Write([]byte(`{"totalResults":0,"Resources":[]}`))
+					}
+					return
+				}
+				if r.Method == http.MethodPost {
+					creates++
+				}
+				w.WriteHeader(http.StatusCreated)
+			}))
+			defer server.Close()
+			adapter, err := New(Config{BaseURL: server.URL})
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: true})
+			if status == http.StatusOK {
+				if err != nil || creates != 1 {
+					t.Fatalf("confirmed absence: error=%v, creates=%d", err, creates)
+				}
+			} else if err == nil || creates != 0 {
+				t.Fatalf("unconfirmed absence: error=%v, creates=%d", err, creates)
+			}
+		})
 	}
 }
