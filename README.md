@@ -117,6 +117,13 @@ go run ./cmd/reconcile -input examples/events.json -now 2026-09-12T00:00:00Z
 The command prints one decision for each physical event and the resulting
 desired projection for each subject.
 
+For this fixture and evaluation time, `person-001` must exist, remain enabled,
+and have lifecycle state `active`. Its department is `platform-engineering`,
+email is `ava@example.test`, and title is `senior-engineer`. The older hire
+revision is skipped, the repeated profile event is marked as a duplicate,
+and the future termination is skipped by the default policy. A different
+evaluation time can change these decisions.
+
 ## Reference contract
 
 ### Three clocks

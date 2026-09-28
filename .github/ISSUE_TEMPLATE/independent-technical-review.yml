@@ -40,7 +40,7 @@ body:
     id: results
     attributes:
       label: Reproduced results
-      description: State what passed, failed, or differed from the documented behavior.
+      description: State what passed, failed, or differed from the documented behavior. If you ran make evaluate, include its JSON report and identify any extra case you tested.
     validations:
       required: true
   - type: textarea

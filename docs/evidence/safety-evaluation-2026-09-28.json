@@ -1,0 +1,317 @@
+{
+  "baseline": "23e702926408c789ce0129ce25dc6df93613d173",
+  "candidate": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+  "go_version": "go version go1.24.7 linux/amd64",
+  "network_policy": "GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local; SCIM tests use loopback fixtures",
+  "runner_sha256": "62392d51f893a03d73d14e1560c7bdb84ecf81baa1209cf03d7b4619b4656f8a",
+  "schema_version": 1,
+  "sources": {
+    "baseline": {
+      "commit": "23e702926408c789ce0129ce25dc6df93613d173",
+      "groups": [
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/adapter/scim",
+            "-run",
+            "^TestApplyRejectsIncompleteOrAmbiguousLookup$"
+          ],
+          "expected": "fail",
+          "expected_failure_assertion_seen": true,
+          "observed": "fail",
+          "output": "=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true\n    scim_test.go:187: unsafe lookup was accepted\n    scim_test.go:190: unsafe lookup issued 1 mutation(s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false\n    scim_test.go:187: unsafe lookup was accepted\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false (0.00s)\n--- FAIL: TestApplyRejectsIncompleteOrAmbiguousLookup (0.03s)\nFAIL\nFAIL\tgithub.com/upramod/deterministic-identity-reconciliation/pkg/adapter/scim\t0.034s\n",
+          "package": "./pkg/adapter/scim",
+          "returncode": 1,
+          "stderr": "",
+          "test": "TestApplyRejectsIncompleteOrAmbiguousLookup",
+          "test_outcomes": {
+            "TestApplyRejectsIncompleteOrAmbiguousLookup": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false": "fail",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true": "fail"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/reconcile",
+            "-run",
+            "^TestConvergeDistinguishesMissingAndEmptyAttributes$"
+          ],
+          "expected": "fail",
+          "expected_failure_assertion_seen": true,
+          "observed": "fail",
+          "output": "=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes\n=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write\n    equivalence_test.go:43: got action=unchanged writes=0; want action=updated writes=1\n--- FAIL: TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write (0.00s)\n=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write\n--- PASS: TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write (0.00s)\n--- FAIL: TestConvergeDistinguishesMissingAndEmptyAttributes (0.00s)\nFAIL\nFAIL\tgithub.com/upramod/deterministic-identity-reconciliation/pkg/reconcile\t0.002s\n",
+          "package": "./pkg/reconcile",
+          "returncode": 1,
+          "stderr": "",
+          "test": "TestConvergeDistinguishesMissingAndEmptyAttributes",
+          "test_outcomes": {
+            "TestConvergeDistinguishesMissingAndEmptyAttributes": "fail",
+            "TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write": "fail",
+            "TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write": "pass"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/reconcile",
+            "-run",
+            "^TestCanonicalizeRejectsAmbiguousAttributeNames$"
+          ],
+          "expected": "fail",
+          "expected_failure_assertion_seen": true,
+          "observed": "fail",
+          "output": "=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values\n    collision_test.go:24: got error <nil>; want \"attribute names \\\" department \\\" and \\\"department\\\" normalize to \\\"department\\\"\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values\n    collision_test.go:24: got error <nil>; want \"attribute names \\\" department \\\" and \\\"department\\\" normalize to \\\"department\\\"\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values\n    collision_test.go:24: got error <nil>; want \"attribute names \\\" department \\\" and \\\"department\\\" normalize to \\\"department\\\"\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values\n    collision_test.go:24: got error <nil>; want \"attribute names \\\" department \\\" and \\\"department\\\" normalize to \\\"department\\\"\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name\n    collision_test.go:24: got error <nil>; want \"attribute name \\\"  \\\" is empty after trimming\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name\n    collision_test.go:24: got error <nil>; want \"attribute name \\\"\\\" is empty after trimming\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision\n    collision_test.go:24: got error <nil>; want \"attribute names \\\" department \\\" and \\\"department\\\" normalize to \\\"department\\\"\"\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision (0.00s)\n--- FAIL: TestCanonicalizeRejectsAmbiguousAttributeNames (0.00s)\nFAIL\nFAIL\tgithub.com/upramod/deterministic-identity-reconciliation/pkg/reconcile\t0.003s\n",
+          "package": "./pkg/reconcile",
+          "returncode": 1,
+          "stderr": "",
+          "test": "TestCanonicalizeRejectsAmbiguousAttributeNames",
+          "test_outcomes": {
+            "TestCanonicalizeRejectsAmbiguousAttributeNames": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision": "fail",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name": "fail"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./cmd/reconcile",
+            "-run",
+            "^TestReadEventsPreservesLargeNumericIdentifiers$"
+          ],
+          "expected": "fail",
+          "expected_failure_assertion_seen": true,
+          "observed": "fail",
+          "output": "=== RUN   TestReadEventsPreservesLargeNumericIdentifiers\n    main_test.go:35: employeeId = \"9007199254740992\", want \"9007199254740993\"\n    main_test.go:38: adjacent large identifiers have the same payload hash\n    main_test.go:46: projected employeeId = \"9007199254740992\", want \"9007199254740993\"\n--- FAIL: TestReadEventsPreservesLargeNumericIdentifiers (0.00s)\nFAIL\nFAIL\tgithub.com/upramod/deterministic-identity-reconciliation/cmd/reconcile\t0.004s\n",
+          "package": "./cmd/reconcile",
+          "returncode": 1,
+          "stderr": "",
+          "test": "TestReadEventsPreservesLargeNumericIdentifiers",
+          "test_outcomes": {
+            "TestReadEventsPreservesLargeNumericIdentifiers": "fail"
+          },
+          "verified": true
+        }
+      ],
+      "test_overlay_commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "tree": "8880216581bfb419c07dd384f105cdd30d07a9cd"
+    },
+    "candidate": {
+      "commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "groups": [
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/adapter/scim",
+            "-run",
+            "^TestApplyRejectsIncompleteOrAmbiguousLookup$"
+          ],
+          "expected": "pass",
+          "expected_failure_assertion_seen": false,
+          "observed": "pass",
+          "output": "=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true (0.00s)\n=== RUN   TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false (0.00s)\n--- PASS: TestApplyRejectsIncompleteOrAmbiguousLookup (0.03s)\nPASS\nok  \tgithub.com/upramod/deterministic-identity-reconciliation/pkg/adapter/scim\t0.035s\n",
+          "package": "./pkg/adapter/scim",
+          "returncode": 0,
+          "stderr": "",
+          "test": "TestApplyRejectsIncompleteOrAmbiguousLookup",
+          "test_outcomes": {
+            "TestApplyRejectsIncompleteOrAmbiguousLookup": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/ambiguous_truncated_page/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/empty_object/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/inconsistent_empty_total/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_resource/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/missing_total/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/negative_total/disable/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/delete/exists=true": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=false": "pass",
+            "TestApplyRejectsIncompleteOrAmbiguousLookup/null_total/disable/exists=true": "pass"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/reconcile",
+            "-run",
+            "^TestConvergeDistinguishesMissingAndEmptyAttributes$"
+          ],
+          "expected": "pass",
+          "expected_failure_assertion_seen": false,
+          "observed": "pass",
+          "output": "=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes\n=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write\n--- PASS: TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write (0.00s)\n=== RUN   TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write\n--- PASS: TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write (0.00s)\n--- PASS: TestConvergeDistinguishesMissingAndEmptyAttributes (0.00s)\nPASS\nok  \tgithub.com/upramod/deterministic-identity-reconciliation/pkg/reconcile\t0.003s\n",
+          "package": "./pkg/reconcile",
+          "returncode": 0,
+          "stderr": "",
+          "test": "TestConvergeDistinguishesMissingAndEmptyAttributes",
+          "test_outcomes": {
+            "TestConvergeDistinguishesMissingAndEmptyAttributes": "pass",
+            "TestConvergeDistinguishesMissingAndEmptyAttributes/different_empty_attribute_keys_require_a_write": "pass",
+            "TestConvergeDistinguishesMissingAndEmptyAttributes/matching_empty_attributes_need_no_write": "pass"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./pkg/reconcile",
+            "-run",
+            "^TestCanonicalizeRejectsAmbiguousAttributeNames$"
+          ],
+          "expected": "pass",
+          "expected_failure_assertion_seen": false,
+          "observed": "pass",
+          "output": "=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name (0.00s)\n=== RUN   TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision (0.00s)\n--- PASS: TestCanonicalizeRejectsAmbiguousAttributeNames (0.00s)\nPASS\nok  \tgithub.com/upramod/deterministic-identity-reconciliation/pkg/reconcile\t0.003s\n",
+          "package": "./pkg/reconcile",
+          "returncode": 0,
+          "stderr": "",
+          "test": "TestCanonicalizeRejectsAmbiguousAttributeNames",
+          "test_outcomes": {
+            "TestCanonicalizeRejectsAmbiguousAttributeNames": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_JSON_values": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/conflicting_string_values": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/empty_string_name": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/matching_JSON_values": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/matching_string_values": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/non-scalar_collision": "pass",
+            "TestCanonicalizeRejectsAmbiguousAttributeNames/whitespace_JSON_name": "pass"
+          },
+          "verified": true
+        },
+        {
+          "command": [
+            "/workspace/scratch/1ece0568e331/tools/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "-timeout=60s",
+            "./cmd/reconcile",
+            "-run",
+            "^TestReadEventsPreservesLargeNumericIdentifiers$"
+          ],
+          "expected": "pass",
+          "expected_failure_assertion_seen": false,
+          "observed": "pass",
+          "output": "=== RUN   TestReadEventsPreservesLargeNumericIdentifiers\n--- PASS: TestReadEventsPreservesLargeNumericIdentifiers (0.00s)\nPASS\nok  \tgithub.com/upramod/deterministic-identity-reconciliation/cmd/reconcile\t0.003s\n",
+          "package": "./cmd/reconcile",
+          "returncode": 0,
+          "stderr": "",
+          "test": "TestReadEventsPreservesLargeNumericIdentifiers",
+          "test_outcomes": {
+            "TestReadEventsPreservesLargeNumericIdentifiers": "pass"
+          },
+          "verified": true
+        }
+      ],
+      "test_overlay_commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "tree": "bd1d7645bcc2ac0e2951ebbc7c6f0fee9dd7e76d"
+    }
+  },
+  "test_sources": [
+    {
+      "commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "git_blob": "6065150864d4eceaacae59fbd3c3f0d608c4da9a",
+      "path": "pkg/adapter/scim/scim_test.go",
+      "sha256": "7e22141356dc7ae90f58c6881ccc222a3d3cdcf64fd67a0f052c98887d922775"
+    },
+    {
+      "commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "git_blob": "87e81004fc1014e4281b28c54a11997491fa8838",
+      "path": "pkg/reconcile/equivalence_test.go",
+      "sha256": "88315126a8cb68195ee9376c2857bef0fd7126d391a2bca43455dc09db452a6e"
+    },
+    {
+      "commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "git_blob": "82e31f2db9841905fb1d410bd0b52ec65eea223d",
+      "path": "pkg/reconcile/collision_test.go",
+      "sha256": "2c9cd1bf1faa58e7931ffff042cb6d5403bff6365c7a4bc9c7e90b1763d23471"
+    },
+    {
+      "commit": "f768d0b6e25a2a2712d7fec57847bf89efe66d9f",
+      "git_blob": "c1fbedb0bddf8c74431d97da61ba9d080420430a",
+      "path": "cmd/reconcile/main_test.go",
+      "sha256": "ddbfb82d075b447c5ee4de3ed708d706e29a822d48b0329751e873b1b583a784"
+    }
+  ],
+  "verified": true
+}

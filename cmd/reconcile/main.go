@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -46,7 +48,17 @@ func readEvents(path string) ([]reconcile.PhysicalEvent, error) {
 		return nil, fmt.Errorf("read input: %w", err)
 	}
 	var events []reconcile.PhysicalEvent
-	if err := json.Unmarshal(data, &events); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	if err := decoder.Decode(&events); err != nil {
+		return nil, fmt.Errorf("decode input: %w", err)
+	}
+	// Preserve the single-document constraint enforced by json.Unmarshal.
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		if err == nil {
+			return nil, fmt.Errorf("decode input: expected a single JSON document")
+		}
 		return nil, fmt.Errorf("decode input: %w", err)
 	}
 	return events, nil

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -66,6 +67,10 @@ func Canonicalize(event PhysicalEvent, receivedAt time.Time) (CanonicalFact, err
 	if payload == nil {
 		payload = map[string]any{}
 	}
+	attributes, err := attributesFromPayload(payload)
+	if err != nil {
+		return CanonicalFact{}, err
+	}
 
 	envelope := hashEnvelope{
 		SubjectID:        subjectID,
@@ -110,7 +115,7 @@ func Canonicalize(event PhysicalEvent, receivedAt time.Time) (CanonicalFact, err
 		},
 		PayloadHash: hex.EncodeToString(hash[:]),
 		Payload:     payload,
-		Attributes:  attributesFromPayload(payload),
+		Attributes:  attributes,
 	}, nil
 }
 
@@ -140,26 +145,42 @@ func normalizeTime(value time.Time) time.Time {
 	return value.Round(0).UTC()
 }
 
-func attributesFromPayload(payload map[string]any) map[string]string {
+func attributesFromPayload(payload map[string]any) (map[string]string, error) {
 	attributes := make(map[string]string)
 	raw, ok := payload["attributes"]
 	if !ok {
-		return attributes
+		return attributes, nil
 	}
 
-	switch values := raw.(type) {
+	values := make(map[string]any)
+	switch typed := raw.(type) {
 	case map[string]any:
-		for key, value := range values {
-			if normalized, ok := scalarString(value); ok {
-				attributes[strings.TrimSpace(key)] = normalized
-			}
-		}
+		values = typed
 	case map[string]string:
-		for key, value := range values {
-			attributes[strings.TrimSpace(key)] = value
+		for key, value := range typed {
+			values[key] = value
 		}
 	}
-	return attributes
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	seenNames := make(map[string]string, len(keys))
+	for _, key := range keys {
+		name := strings.TrimSpace(key)
+		if name == "" {
+			return nil, fmt.Errorf("attribute name %q is empty after trimming", key)
+		}
+		if previous, exists := seenNames[name]; exists {
+			return nil, fmt.Errorf("attribute names %q and %q normalize to %q", previous, key, name)
+		}
+		seenNames[name] = key
+		if normalized, ok := scalarString(values[key]); ok {
+			attributes[name] = normalized
+		}
+	}
+	return attributes, nil
 }
 
 func scalarString(value any) (string, bool) {

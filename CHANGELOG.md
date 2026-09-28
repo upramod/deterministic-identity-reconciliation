@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add a before-and-after evaluator for the four safety regressions, with
+  source provenance and explicit expected failures on the pinned baseline.
+- Reject empty or colliding normalized attribute names before projection.
+- Preserve JSON payload numbers in the CLI without converting them to
+  floating point, while continuing to reject trailing JSON content.
+- Reject ambiguous or incomplete SCIM subject lookups before account writes.
+  `totalResults` is required, including for empty results.
+- Compare attribute key presence as well as values when deciding whether a
+  target already matches. Different keys with empty values require a write.
 - Added the permanent Zenodo DOI for the archived version 0.2.0 source release.
 
 ## 0.2.0 - 2026-09-23
