@@ -21,6 +21,22 @@ expected.
 The repository contains synthetic data only. Do not submit credentials,
 personal data, production logs, or confidential source records.
 
+## Start with one question
+
+A review can be limited to one question; a full project review is not required.
+
+- **SCIM lookup safety:** inspect `pkg/adapter/scim/scim.go` and
+  `TestApplyRejectsIncompleteOrAmbiguousLookup` in the adjacent test file.
+  Does the refusal rule reject a legitimate response or miss a case that could
+  mutate the wrong account?
+- **Lifecycle ordering:** read contract sections 4–6 and the rehire scenario in
+  `docs/evaluation-scenarios.md`. Identify a source condition under which the
+  sequence-first revision rule or effective-time ordering would be unsafe.
+
+A short reply identifying the assumption, counterexample, and revision examined
+is useful. Running code is optional. If you run a test, include the command and
+observed result, including failures. No favorable conclusion is expected.
+
 ## Reproduce the reference behavior
 
 Requirements: Go 1.22 or newer.
@@ -41,15 +57,18 @@ go version
 
 ## Reproduce the four safety regressions
 
-The unreleased fixes in [PR #6](https://github.com/upramod/deterministic-identity-reconciliation/pull/6)
+The fixes merged in [PR #6](https://github.com/upramod/deterministic-identity-reconciliation/pull/6)
 include a before-and-after evaluator. It requires Python 3, Git, and Go 1.22
 or newer. From the repository checkout:
 
 ```sh
-git fetch origin pull/6/head
-git switch --detach FETCH_HEAD
+git fetch origin main
+git switch --detach 67523583b95ab193c1b82f071f51e697f00fb996
 make evaluate > evaluation.json
 ```
+
+This pins the September 28 merged source, rather than a moving branch. Use a
+normal clone with history; the evaluator also needs the baseline commit below.
 
 The command exits successfully only when all four named regression groups fail
 on the pinned baseline and pass on the candidate. It records the resolved
