@@ -114,6 +114,65 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 	}
 }
 
+// The provider changes the account after lookup, before the write. No sleeps
+// are needed: advancing its version before replying makes the race deterministic.
+func TestApplyRejectsConcurrentTargetChange(t *testing.T) {
+	for _, mode := range []DeprovisionMode{DeprovisionDisable, DeprovisionDelete} {
+		t.Run(string(mode), func(t *testing.T) {
+			mutations, attempts := 0, 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet {
+					_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","active":true,"meta":{"version":"W/\"v1\""}}]}`))
+					return
+				}
+				attempts++
+				// The target now has v2. A guarded v1 write must fail.
+				if r.Header.Get("If-Match") == `W/"v1"` {
+					w.WriteHeader(http.StatusPreconditionFailed)
+					return
+				}
+				mutations++
+				w.WriteHeader(http.StatusNoContent)
+			}))
+			defer server.Close()
+			adapter, err := New(Config{BaseURL: server.URL, DeprovisionMode: mode})
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: false})
+			if err == nil || mutations != 0 || attempts != 1 {
+				t.Fatalf("concurrent change: error=%v, mutations=%d, attempts=%d; want rejection without overwrite or retry", err, mutations, attempts)
+			}
+		})
+	}
+}
+
+func TestApplyUsesVersionForSuccessfulUpdate(t *testing.T) {
+	mutations := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","active":false,"meta":{"version":"W/\"v1\""}}]}`))
+			return
+		}
+		if r.Method != http.MethodPatch || r.Header.Get("If-Match") != `W/"v1"` {
+			t.Errorf("unexpected write: method=%s, If-Match=%q", r.Method, r.Header.Get("If-Match"))
+			w.WriteHeader(http.StatusPreconditionFailed)
+			return
+		}
+		mutations++
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	adapter, err := New(Config{BaseURL: server.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: true, Enabled: true})
+	if err != nil || mutations != 1 {
+		t.Fatalf("unchanged version: error=%v, mutations=%d", err, mutations)
+	}
+}
+
 func TestPatchBodyUsesSCIMOperationShape(t *testing.T) {
 	var received map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {

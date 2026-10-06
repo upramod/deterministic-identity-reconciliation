@@ -39,6 +39,23 @@ list-response contract in [RFC 7644, section 3.4.2](https://www.rfc-editor.org/r
 This check depends on truthful server metadata. It does not lock the remote
 directory or make the lookup and subsequent write atomic.
 
+When the matched resource includes `meta.version`, PATCH and DELETE send that
+value as `If-Match`. A provider that enforces resource versions rejects a
+concurrent change with HTTP 412; the adapter returns the error without an
+unconditional retry. The caller must re-read source and target state before
+deciding whether another reconciliation is appropriate. This is the standard
+SCIM conditional-write mechanism, not a new reconciliation algorithm.
+
+If the resource omits `meta.version`, writes remain unconditional. This adapter
+does not discover version support or fetch an individual resource's ETag as a
+fallback. It cannot guarantee concurrency safety for those providers, nor does
+an ETag establish that the desired source state is current. Create-after-lookup
+also remains subject to the provider's uniqueness constraints.
+
+The lookup currently implements the RFC 7644 index-based list-response contract.
+It does not support RFC 9865 cursor pagination, where `totalResults` can be
+omitted. Such responses are rejected rather than treated as absent accounts.
+
 A first integration should be small enough to review as one pull request. The
 integration must document:
 

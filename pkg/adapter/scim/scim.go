@@ -137,16 +137,16 @@ func (a *Adapter) Apply(ctx context.Context, desired reconcile.DesiredState) err
 		if resource == nil {
 			return a.create(ctx, desired)
 		}
-		return a.patch(ctx, resourceID(resource), desired.Enabled, desired.Attributes)
+		return a.patch(ctx, resourceID(resource), desired.Enabled, desired.Attributes, resourceVersion(resource))
 	}
 
 	if resource == nil {
 		return nil
 	}
 	if a.deprovisionMode == DeprovisionDelete {
-		return a.request(ctx, http.MethodDelete, a.userURL(resourceID(resource)), nil, nil)
+		return a.request(ctx, http.MethodDelete, a.userURL(resourceID(resource)), nil, nil, resourceVersion(resource))
 	}
-	return a.patch(ctx, resourceID(resource), false, nil)
+	return a.patch(ctx, resourceID(resource), false, nil, resourceVersion(resource))
 }
 
 func (a *Adapter) find(ctx context.Context, subjectID string) (map[string]any, error) {
@@ -205,7 +205,7 @@ func (a *Adapter) create(ctx context.Context, desired reconcile.DesiredState) er
 	return a.request(ctx, http.MethodPost, a.resourceURL("Users").String(), user, nil)
 }
 
-func (a *Adapter) patch(ctx context.Context, id string, enabled bool, attributes map[string]string) error {
+func (a *Adapter) patch(ctx context.Context, id string, enabled bool, attributes map[string]string, version string) error {
 	if id == "" {
 		return errors.New("SCIM resource id is required")
 	}
@@ -230,10 +230,10 @@ func (a *Adapter) patch(ctx context.Context, id string, enabled bool, attributes
 		"schemas":    []string{patchOperationSchema},
 		"Operations": operations,
 	}
-	return a.request(ctx, http.MethodPatch, a.userURL(id), body, nil)
+	return a.request(ctx, http.MethodPatch, a.userURL(id), body, nil, version)
 }
 
-func (a *Adapter) request(ctx context.Context, method, endpoint string, body any, response any) error {
+func (a *Adapter) request(ctx context.Context, method, endpoint string, body any, response any, versions ...string) error {
 	var requestBody io.Reader
 	if body != nil {
 		encoded, err := json.Marshal(body)
@@ -247,6 +247,9 @@ func (a *Adapter) request(ctx context.Context, method, endpoint string, body any
 		return fmt.Errorf("build SCIM request: %w", err)
 	}
 	req.Header.Set("Accept", "application/scim+json")
+	if len(versions) > 0 && versions[0] != "" {
+		req.Header.Set("If-Match", versions[0])
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/scim+json")
 	}
@@ -299,6 +302,12 @@ func (a *Adapter) managedValues(resource map[string]any) map[string]string {
 func resourceID(resource map[string]any) string {
 	value, _ := resource["id"].(string)
 	return strings.TrimSpace(value)
+}
+
+func resourceVersion(resource map[string]any) string {
+	meta, _ := resource["meta"].(map[string]any)
+	version, _ := meta["version"].(string)
+	return strings.TrimSpace(version)
 }
 
 func scimActive(resource map[string]any) bool {
