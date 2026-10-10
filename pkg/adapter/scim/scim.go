@@ -340,7 +340,10 @@ func (a *Adapter) resourceURL(resource string) *url.URL {
 }
 
 func (a *Adapter) userURL(id string) string {
-	result := a.resourceURL("Users/" + url.PathEscape(id))
+	result := a.resourceURL("Users")
+	escapedPath := strings.TrimRight(result.EscapedPath(), "/") + "/" + url.PathEscape(id)
+	result.Path = strings.TrimRight(result.Path, "/") + "/" + id
+	result.RawPath = escapedPath
 	return result.String()
 }
 
