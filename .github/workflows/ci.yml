@@ -26,3 +26,30 @@ jobs:
         run: go vet ./...
       - name: Test
         run: go test ./...
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: identity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgres://identity_test:local_test_only@localhost:5432/identity_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test PostgreSQL persistence and competing writers
+        run: go test -race ./pkg/store/postgres -run TestPostgres -count=1 -v
