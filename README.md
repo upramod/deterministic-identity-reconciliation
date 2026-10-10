@@ -237,6 +237,12 @@ See [SCIM interoperability](docs/scim-interoperability.md) for the pinned setup
 and limits. Compatibility with other providers still needs provider-specific
 tests.
 
+SCIM lookups use `externalId` by default. Integrations that configure a custom
+`SubjectAttribute` write that binding attribute when creating the User even if
+it is not in `ManagedAttributes`; managed attributes remain the independently
+owned profile fields. This guarantees that a successful create can be found by
+the next reconciliation instead of being mistaken for an absent account.
+
 ## Repository layout
 
 ```text
