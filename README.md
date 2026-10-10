@@ -241,7 +241,8 @@ SCIM lookups use `externalId` by default. Integrations that configure a custom
 `SubjectAttribute` write that binding attribute when creating the User even if
 it is not in `ManagedAttributes`; managed attributes remain the independently
 owned profile fields. This guarantees that a successful create can be found by
-the next reconciliation instead of being mistaken for an absent account.
+the next reconciliation instead of being mistaken for an absent account. The
+persisted-state command exposes the same choice through `-subject-attribute`.
 
 ## Repository layout
 
