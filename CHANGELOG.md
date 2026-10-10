@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Encode opaque SCIM resource identifiers exactly once as one URI path segment
+  for PATCH and DELETE requests.
 - Reject SCIM configuration that also treats the stable subject-binding
   attribute as a mutable managed profile field, including case-only aliases.
 - Let the persisted-state convergence command select the SCIM subject binding
