@@ -112,6 +112,13 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 	if _, err := New(Config{BaseURL: "https://example.test", SubjectAttribute: "external id"}); err == nil {
 		t.Fatalf("expected unsafe attribute to be rejected")
 	}
+	if _, err := New(Config{
+		BaseURL:           "https://example.test",
+		SubjectAttribute:  "employeeNumber",
+		ManagedAttributes: []string{"displayName", "EMPLOYEENUMBER"},
+	}); err == nil {
+		t.Fatalf("expected mutable subject binding to be rejected")
+	}
 }
 
 // The provider changes the account after lookup, before the write. No sleeps
