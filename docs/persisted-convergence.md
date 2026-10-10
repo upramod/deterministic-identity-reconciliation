@@ -23,12 +23,17 @@ go run ./cmd/converge -subject person-001 -managed-attributes displayName
 
 # Apply the current persisted state, using disable as the deprovision policy.
 go run ./cmd/converge -subject person-001 -managed-attributes displayName -apply
+
+# Use an existing custom SCIM binding instead of the default externalId.
+go run ./cmd/converge -subject person-001 -subject-attribute employeeNumber -managed-attributes displayName -apply
 ```
 
-Optional flags: `-deprovision-mode delete` selects physical deletion instead of
-disable; `-timeout 30s` sets the total deadline. A missing projection is an error
-and never means permission to delete the account. No connection strings, tokens,
-or attribute values appear in the command's success report.
+Optional flags: `-subject-attribute employeeNumber` selects the scalar SCIM
+attribute that binds the persisted subject ID; the default is `externalId`.
+`-deprovision-mode delete` selects physical deletion instead of disable;
+`-timeout 30s` sets the total deadline. A missing projection is an error and
+never means permission to delete the account. No connection strings, tokens, or
+attribute values appear in the command's success report.
 
 The JSON report contains `subject_id`, `row_version`, `mode`, and `action`.
 Preview reports `would_update` or `unchanged`; apply reports `updated` or
@@ -76,7 +81,9 @@ test builds the actual command and executes a fresh process for every preview,
 apply, and replay. It checks creation, preview without mutation, a persisted
 termination deliberately left unapplied, recovery on the next invocation,
 idempotent replay, rehire, unknown-attribute rejection, and missing-subject
-rejection. Separate database tests verify that a competing writer cannot update
+rejection. It also checks that a command configured with a custom subject
+attribute finds an existing resource through that binding and does not create a
+duplicate. Separate database tests verify that a competing writer cannot update
 a locked projection and that callback failure releases the lock.
 
 The test pauses work at the commit-to-apply boundary; it does not kill an
