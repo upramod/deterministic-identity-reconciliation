@@ -397,13 +397,16 @@ func resourceVersion(resource map[string]any) (string, error) {
 }
 
 func scimActive(resource map[string]any) (bool, error) {
-	value, _, err := responseAttribute(resource, "active")
+	value, found, err := responseAttribute(resource, "active")
 	if err != nil {
 		return false, err
 	}
+	if !found {
+		return true, nil
+	}
 	active, ok := value.(bool)
 	if !ok {
-		return true, nil
+		return false, errors.New("SCIM resource active must be a boolean")
 	}
 	return active, nil
 }

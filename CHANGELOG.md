@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject present non-Boolean SCIM `active` response values instead of silently
+  treating malformed lifecycle state as enabled.
 - Encode opaque SCIM resource identifiers exactly once as one URI path segment
   for PATCH and DELETE requests.
 - Reject SCIM configuration that also treats the stable subject-binding
