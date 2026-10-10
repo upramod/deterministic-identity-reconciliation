@@ -220,3 +220,46 @@ func TestPostgresPhysicalEventDeduplication(t *testing.T) {
 		t.Fatalf("physical event changed: count=%d name=%q", count, name)
 	}
 }
+
+func TestPostgresPositiveVersionFreshnessOrdering(t *testing.T) {
+	for _, field := range []string{"sequence", "modification", "revision", "event_key"} {
+		for _, newer := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/newer=%v", field, newer), func(t *testing.T) {
+				s, _, _ := integrationStore(t)
+				requireCAS(t, s, 0, testProjection(1), true)
+				current := testProjection(2)
+				requireCAS(t, s, 0, current, true)
+				candidate := current
+				delta := int64(-1)
+				if newer {
+					delta = 1
+				}
+				switch field {
+				case "sequence":
+					candidate.Freshness.SourceSequence += delta
+				case "modification":
+					candidate.Freshness.ModificationTime = candidate.Freshness.ModificationTime.Add(time.Duration(delta) * time.Second)
+				case "revision":
+					candidate.Freshness.RevisionNumber += delta
+				case "event_key":
+					candidate.Freshness.PhysicalEventKey = fmt.Sprintf("event-%d", 2+delta)
+				}
+				want := candidate.Freshness.Compare(current.Freshness) > 0
+				requireCAS(t, s, 1, candidate, want)
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				got, err := s.LoadProjection(ctx, current.SubjectID)
+				if err != nil {
+					t.Fatal(err)
+				}
+				expected, version := current, int64(1)
+				if want {
+					expected, version = candidate, 2
+				}
+				if got.RowVersion != version || got.Freshness.Compare(expected.Freshness) != 0 {
+					t.Fatalf("unexpected persisted freshness: %#v", got)
+				}
+			})
+		}
+	}
+}

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Reject projection updates with positive expected row versions when the row is
+  missing, instead of silently inserting a version-zero row.
+- Add real PostgreSQL 16 CI coverage for connection recovery, competing writers,
+  stale versions, freshness ordering, and immutable physical-event deduplication.
+
 - Stop redundant SCIM disable writes after successful deprovisioning, including
   recovery from a committed mutation whose response was lost. Preserve physical
   observations, delete-mode semantics, and rehire behavior.

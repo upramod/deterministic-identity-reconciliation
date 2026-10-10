@@ -182,10 +182,35 @@ WHERE canonical_state.row_version = $13
 	)
 RETURNING row_version`
 
+// A positive expected version requires an existing row. Use UPDATE rather than
+// an upsert so a missing row cannot silently reset the caller's version history.
+const updateProjectionSQL = `
+UPDATE canonical_state
+SET row_version = row_version + 1,
+	exists_flag = $2,
+	enabled = $3,
+	lifecycle_state = $4,
+	attributes = $5,
+	source_fact_key = $6,
+	source_event_key = $7,
+	effective_time = $8,
+	source_sequence = $9,
+	source_modification_time = $10,
+	source_revision_number = $11,
+	source_physical_event_key = $12,
+	updated_at = CURRENT_TIMESTAMP
+WHERE subject_id = $1 AND row_version = $13
+	AND (source_sequence, source_modification_time,
+		source_revision_number, source_physical_event_key) < ($9, $10, $11, $12)
+RETURNING row_version`
+
 // CompareAndSetProjection atomically advances a subject projection.
 //
 // It returns false when another writer advanced the row or when the incoming
-// freshness tuple is not newer than the persisted tuple.
+// freshness tuple is not newer than the persisted tuple. A positive expected
+// version requires an existing row; a missing row returns false. Version zero
+// retains the bootstrap convention: create a missing row at version zero or
+// update a matching version-zero row when the incoming tuple is newer.
 func (s *Store) CompareAndSetProjection(
 	ctx context.Context,
 	expectedRowVersion int64,
@@ -199,8 +224,12 @@ func (s *Store) CompareAndSetProjection(
 		return false, fmt.Errorf("marshal projection attributes: %w", err)
 	}
 
+	query := compareAndSetProjectionSQL
+	if expectedRowVersion > 0 {
+		query = updateProjectionSQL
+	}
 	var rowVersion int64
-	err = s.db.QueryRowContext(ctx, compareAndSetProjectionSQL,
+	err = s.db.QueryRowContext(ctx, query,
 		projection.SubjectID,
 		projection.Exists,
 		projection.Enabled,
