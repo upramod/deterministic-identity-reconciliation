@@ -240,6 +240,41 @@ func TestApplyRejectsMalformedVersionMetadata(t *testing.T) {
 	}
 }
 
+func TestApplyEncodesProviderResourceIDAsOnePathSegment(t *testing.T) {
+	const resourceID = "tenant/user?legacy#record"
+	writes := 0
+	requestURI := ""
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			_, _ = fmt.Fprintf(w, `{"totalResults":1,"Resources":[{"id":%q,"active":true}]}`, resourceID)
+		case http.MethodDelete:
+			writes++
+			requestURI = r.RequestURI
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected method %s", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, DeprovisionMode: DeprovisionDelete})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if writes != 1 {
+		t.Fatalf("writes = %d, want 1", writes)
+	}
+	if requestURI != "/Users/tenant%2Fuser%3Flegacy%23record" {
+		t.Fatalf("request URI = %q, want one encoded resource-id segment", requestURI)
+	}
+}
+
 // The provider changes the account after lookup, before the write. No sleeps
 // are needed: advancing its version before replying makes the race deterministic.
 func TestApplyRejectsConcurrentTargetChange(t *testing.T) {
