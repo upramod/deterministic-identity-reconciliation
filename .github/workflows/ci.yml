@@ -53,6 +53,15 @@ jobs:
           cache: true
       - name: Test PostgreSQL persistence and competing writers
         run: go test -race ./pkg/store/postgres -run TestPostgres -count=1 -v
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/scim-interop-requirements.txt
+      - name: Install independent SCIM server
+        run: python -m pip install -r scripts/scim-interop-requirements.txt
+      - name: Test fresh-process persisted convergence end to end
+        run: python scripts/test-scim-interop.py --end-to-end
 
   scim-interoperability:
     runs-on: ubuntu-latest
