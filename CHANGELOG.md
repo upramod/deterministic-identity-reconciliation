@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Let the persisted-state convergence command select the SCIM subject binding
+  attribute instead of always assuming `externalId`.
 - Reject reused PostgreSQL physical-event keys when their immutable content
   differs, while preserving no-op idempotency for exact redelivery.
 - Persist a configured custom SCIM subject attribute during User creation so
