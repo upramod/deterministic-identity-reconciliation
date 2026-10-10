@@ -240,7 +240,11 @@ tests.
 SCIM lookups use `externalId` by default. Integrations that configure a custom
 `SubjectAttribute` write that binding attribute when creating the User even if
 it is not in `ManagedAttributes`; managed attributes remain the independently
-owned profile fields. The binding attribute cannot also be managed, including
+owned profile fields. Subject bindings may use `externalId`, `userName`, or a
+provider-supported custom scalar attribute. They cannot use `schemas`,
+`active`, `id`, or `meta`: those fields have protocol, lifecycle, or
+service-provider-owned types and semantics that a string subject identifier
+would violate. The binding attribute cannot also be managed, including
 under a differently cased spelling, because SCIM attribute names are
 case-insensitive and a profile update must not move the stable lookup key. This
 guarantees that a successful create can be found by the next reconciliation
