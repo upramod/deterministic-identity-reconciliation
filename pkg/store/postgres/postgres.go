@@ -36,8 +36,24 @@ INSERT INTO physical_events (
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 ON CONFLICT (event_key) DO NOTHING`
 
+const physicalEventMatchesSQL = `
+SELECT subject_id = $2
+	AND event_type = $3
+	AND source_scope = $4
+	AND effective_time = $5
+	AND end_time IS NOT DISTINCT FROM $6
+	AND modification_time = $7
+	AND source_sequence = $8
+	AND revision_number = $9
+	AND payload = $10::jsonb
+	AND payload_hash = $11
+FROM physical_events
+WHERE event_key = $1`
+
 // InsertPhysicalEvent stores an immutable physical event. The returned bool
-// is false when the event key was already present.
+// is false for an exact replay. Reusing an event key for different immutable
+// content returns an error. ReceivedAt is deliberately excluded from the
+// comparison because delivery time can differ across retries.
 func (s *Store) InsertPhysicalEvent(ctx context.Context, fact reconcile.CanonicalFact) (bool, error) {
 	payload, err := json.Marshal(fact.Payload)
 	if err != nil {
@@ -64,7 +80,31 @@ func (s *Store) InsertPhysicalEvent(ctx context.Context, fact reconcile.Canonica
 	if err != nil {
 		return false, fmt.Errorf("read physical event result: %w", err)
 	}
-	return rows == 1, nil
+	if rows == 1 {
+		return true, nil
+	}
+
+	var exactReplay bool
+	err = s.db.QueryRowContext(ctx, physicalEventMatchesSQL,
+		fact.EventKey,
+		fact.SubjectID,
+		fact.EventType,
+		fact.SourceScope,
+		fact.EffectiveTime,
+		fact.EndTime,
+		fact.ModificationTime,
+		fact.Freshness.SourceSequence,
+		fact.Freshness.RevisionNumber,
+		string(payload),
+		fact.PayloadHash,
+	).Scan(&exactReplay)
+	if err != nil {
+		return false, fmt.Errorf("verify physical event replay: %w", err)
+	}
+	if !exactReplay {
+		return false, fmt.Errorf("event key %q conflicts with previously stored immutable event", fact.EventKey)
+	}
+	return false, nil
 }
 
 const upsertCanonicalFactSQL = `

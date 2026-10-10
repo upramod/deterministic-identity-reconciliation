@@ -207,9 +207,16 @@ func TestPostgresPhysicalEventDeduplication(t *testing.T) {
 	if inserted, err := s.InsertPhysicalEvent(ctx, fact); err != nil || !inserted {
 		t.Fatalf("initial insert = %v, %v", inserted, err)
 	}
-	fact.Payload["name"] = "replacement"
-	if inserted, err := s.InsertPhysicalEvent(ctx, fact); err != nil || inserted {
-		t.Fatalf("duplicate insert = %v, %v", inserted, err)
+	replay := fact
+	replay.ReceivedAt = fact.ReceivedAt.Add(time.Minute)
+	if inserted, err := s.InsertPhysicalEvent(ctx, replay); err != nil || inserted {
+		t.Fatalf("exact replay = %v, %v", inserted, err)
+	}
+	conflict := fact
+	conflict.Payload = map[string]any{"name": "replacement"}
+	conflict.PayloadHash = strings.Repeat("b", 64)
+	if inserted, err := s.InsertPhysicalEvent(ctx, conflict); err == nil || inserted || !strings.Contains(err.Error(), "event key") {
+		t.Fatalf("conflicting replay = %v, %v; want collision error", inserted, err)
 	}
 	var count int
 	var name string
