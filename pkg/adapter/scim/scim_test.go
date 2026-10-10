@@ -240,7 +240,6 @@ func TestApplyRejectsMalformedVersionMetadata(t *testing.T) {
 	}
 }
 
-
 func TestObserveRejectsMalformedActiveAttribute(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","active":"false"}]}`))
