@@ -119,6 +119,22 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 	}); err == nil {
 		t.Fatalf("expected mutable subject binding to be rejected")
 	}
+	for _, attribute := range []string{"schemas", "Active", "id", "meta"} {
+		if _, err := New(Config{
+			BaseURL:          "https://example.test",
+			SubjectAttribute: attribute,
+		}); err == nil {
+			t.Errorf("expected unsafe subject attribute %q to be rejected", attribute)
+		}
+	}
+	for _, attribute := range []string{"externalId", "userName", "employeeNumber"} {
+		if _, err := New(Config{
+			BaseURL:          "https://example.test",
+			SubjectAttribute: attribute,
+		}); err != nil {
+			t.Errorf("expected supported subject attribute %q: %v", attribute, err)
+		}
+	}
 	for _, attribute := range []string{"schemas", "USERNAME", "externalId", "Active", "id", "meta"} {
 		if _, err := New(Config{
 			BaseURL:           "https://example.test",
