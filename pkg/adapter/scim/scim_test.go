@@ -211,6 +211,35 @@ func TestApplyRejectsCaseAmbiguousResponseAttributes(t *testing.T) {
 	}
 }
 
+func TestApplyRejectsMalformedVersionMetadata(t *testing.T) {
+	for _, resource := range []string{
+		`{"id":"scim-1","active":true,"meta":"W/\"v1\""}`,
+		`{"id":"scim-1","active":true,"meta":{"version":7}}`,
+	} {
+		t.Run(resource, func(t *testing.T) {
+			mutations := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet {
+					_, _ = fmt.Fprintf(w, `{"totalResults":1,"Resources":[%s]}`, resource)
+					return
+				}
+				mutations++
+				w.WriteHeader(http.StatusNoContent)
+			}))
+			defer server.Close()
+
+			adapter, err := New(Config{BaseURL: server.URL, DeprovisionMode: DeprovisionDelete})
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: false})
+			if err == nil || mutations != 0 {
+				t.Fatalf("malformed version metadata: error=%v mutations=%d; want rejection without mutation", err, mutations)
+			}
+		})
+	}
+}
+
 // The provider changes the account after lookup, before the write. No sleeps
 // are needed: advancing its version before replying makes the race deterministic.
 func TestApplyRejectsConcurrentTargetChange(t *testing.T) {
