@@ -368,16 +368,28 @@ func resourceID(resource map[string]any) (string, error) {
 }
 
 func resourceVersion(resource map[string]any) (string, error) {
-	value, _, err := responseAttribute(resource, "meta")
+	value, found, err := responseAttribute(resource, "meta")
 	if err != nil {
 		return "", err
 	}
-	meta, _ := value.(map[string]any)
-	value, _, err = responseAttribute(meta, "version")
+	if !found {
+		return "", nil
+	}
+	meta, ok := value.(map[string]any)
+	if !ok {
+		return "", errors.New("SCIM resource meta must be an object")
+	}
+	value, found, err = responseAttribute(meta, "version")
 	if err != nil {
 		return "", err
 	}
-	version, _ := value.(string)
+	if !found {
+		return "", nil
+	}
+	version, ok := value.(string)
+	if !ok {
+		return "", errors.New("SCIM resource meta.version must be a string")
+	}
 	return strings.TrimSpace(version), nil
 }
 
