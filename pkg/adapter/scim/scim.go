@@ -70,6 +70,9 @@ func New(config Config) (*Adapter, error) {
 	if !validAttributeName(subjectAttribute) {
 		return nil, fmt.Errorf("invalid SubjectAttribute %q", subjectAttribute)
 	}
+	if unsafeSubjectAttribute(subjectAttribute) {
+		return nil, fmt.Errorf("SubjectAttribute %q is owned by the SCIM protocol or service provider", subjectAttribute)
+	}
 
 	deprovisionMode := config.DeprovisionMode
 	if deprovisionMode == "" {
@@ -383,6 +386,15 @@ func validAttributeName(value string) bool {
 func adapterOwnsAttribute(value string) bool {
 	switch strings.ToLower(value) {
 	case "schemas", "username", "externalid", "active", "id", "meta":
+		return true
+	default:
+		return false
+	}
+}
+
+func unsafeSubjectAttribute(value string) bool {
+	switch strings.ToLower(value) {
+	case "schemas", "active", "id", "meta":
 		return true
 	default:
 		return false
