@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add a pinned independent SCIM server and CI interoperability tests for create,
+  update, disable, rehire, deletion, no-op replay, lost-response recovery, and
+  rejection of a concurrent target change with HTTP 412.
+
 - Reject projection updates with positive expected row versions when the row is
   missing, instead of silently inserting a version-zero row.
 - Add real PostgreSQL 16 CI coverage for connection recovery, competing writers,
