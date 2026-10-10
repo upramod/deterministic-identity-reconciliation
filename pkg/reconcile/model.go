@@ -169,6 +169,14 @@ type TargetAdapter interface {
 	Apply(ctx context.Context, desired DesiredState) error
 }
 
+// TargetStateComparator optionally defines target-specific convergence semantics.
+// For example, a target may implement absence by retaining a disabled account.
+// Implementations must compare the observation without performing I/O or
+// mutating either state. Adapters without this interface use StateEquivalent.
+type TargetStateComparator interface {
+	StateEquivalent(observed ObservedState, desired DesiredState) bool
+}
+
 // ConvergenceAction describes whether a target mutation occurred.
 type ConvergenceAction string
 

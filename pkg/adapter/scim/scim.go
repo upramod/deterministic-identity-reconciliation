@@ -123,6 +123,17 @@ func (a *Adapter) Observe(ctx context.Context, subjectID string) (reconcile.Obse
 	}, nil
 }
 
+// StateEquivalent compares the observation using the configured deprovision
+// policy. Disable mode intentionally retains the resource and its attributes;
+// either an absent or a disabled account satisfies a desired absence.
+// Physical existence remains visible in Observe and ConvergenceResult.
+func (a *Adapter) StateEquivalent(observed reconcile.ObservedState, desired reconcile.DesiredState) bool {
+	if !desired.Exists && a.deprovisionMode == DeprovisionDisable {
+		return !observed.Exists || !observed.Enabled
+	}
+	return reconcile.StateEquivalent(observed, desired)
+}
+
 // Apply converges a SCIM Users resource after the caller has observed it.
 //
 // DeprovisionDisable is the default. It preserves the SCIM resource and sets

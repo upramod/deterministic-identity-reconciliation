@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Stop redundant SCIM disable writes after successful deprovisioning, including
+  recovery from a committed mutation whose response was lost. Preserve physical
+  observations, delete-mode semantics, and rehire behavior.
+
 - Add a before-and-after evaluator for the four safety regressions, with
   source provenance and explicit expected failures on the pinned baseline.
 - Reject empty or colliding normalized attribute names before projection.
