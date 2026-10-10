@@ -42,7 +42,9 @@ not database validation. The integration suite checks:
   produce exactly one successful update; persisted state matches that winner.
 - Newer valid writes advance the version, with each freshness tuple component
   checked in both directions against the Go comparison.
-- Duplicate physical event keys cannot replace the original payload.
+- Exact physical-event replays remain idempotent even when delivery time
+  differs. Reusing an event key with different immutable content returns a
+  collision error and cannot replace the original row.
 
 ## Reproduce the original failure
 
