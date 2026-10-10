@@ -201,6 +201,13 @@ ORM. The application must register a PostgreSQL driver before opening its
 connection. CompareAndSetProjection checks both the stored row version and
 the incoming freshness tuple in one SQL statement.
 
+The PostgreSQL CI job exercises the actual schema against PostgreSQL 16. To run
+the same suite against a disposable local database, set
+`IDENTITY_TEST_DATABASE_URL` to its PostgreSQL connection URL and run
+`go test -race ./pkg/store/postgres -run TestPostgres -count=1 -v`.
+Tests create and remove isolated schemas. Without that variable, the database
+tests skip. See [PostgreSQL recovery checks](docs/postgres-recovery.md).
+
 ## Target adapters
 
 Implement reconcile.TargetAdapter:
