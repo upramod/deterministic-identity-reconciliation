@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add a preview-first command for applying one persisted projection to SCIM.
+  Apply mode reads under a PostgreSQL row lock held through target convergence.
+- Add end-to-end tests with real PostgreSQL, an independent SCIM server, and
+  fresh command processes, plus row-lock contention and failure-release tests.
+
 - Add a pinned independent SCIM server and CI interoperability tests for create,
   update, disable, rehire, deletion, no-op replay, lost-response recovery, and
   rejection of a concurrent target change with HTTP 412.

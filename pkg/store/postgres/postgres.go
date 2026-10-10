@@ -263,6 +263,40 @@ WHERE subject_id = $1`
 
 // LoadProjection reads the current durable projection for a subject.
 func (s *Store) LoadProjection(ctx context.Context, subjectID string) (reconcile.IdentityProjection, error) {
+	return loadProjection(ctx, s.db, loadProjectionSQL, subjectID)
+}
+
+// WithLockedProjection reads the current projection under a row lock and keeps
+// that lock for the callback. Writers to that row and other locked readers wait
+// until the callback and transaction finish. The caller must bound ctx and any
+// external I/O. Remote side effects cannot be rolled back by this transaction.
+func (s *Store) WithLockedProjection(ctx context.Context, subjectID string, apply func(reconcile.IdentityProjection) error) error {
+	if apply == nil {
+		return errors.New("projection callback is required")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin projection transaction: %w", err)
+	}
+	defer tx.Rollback()
+	projection, err := loadProjection(ctx, tx, loadProjectionSQL+" FOR UPDATE", subjectID)
+	if err != nil {
+		return err
+	}
+	if err := apply(projection); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit projection transaction: %w", err)
+	}
+	return nil
+}
+
+type projectionQuerier interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func loadProjection(ctx context.Context, q projectionQuerier, query, subjectID string) (reconcile.IdentityProjection, error) {
 	var projection reconcile.IdentityProjection
 	var attributes []byte
 	var state string
@@ -271,7 +305,7 @@ func (s *Store) LoadProjection(ctx context.Context, subjectID string) (reconcile
 	var sourceRevisionNumber int64
 	var sourcePhysicalEventKey string
 
-	err := s.db.QueryRowContext(ctx, loadProjectionSQL, subjectID).Scan(
+	err := q.QueryRowContext(ctx, query, subjectID).Scan(
 		&projection.SubjectID,
 		&projection.RowVersion,
 		&projection.Exists,

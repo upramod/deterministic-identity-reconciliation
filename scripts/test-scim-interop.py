@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run the Go adapter against an unchanged, separately installed SCIM server."""
 import importlib.metadata
+import argparse
 import os
 from pathlib import Path
 import secrets
@@ -14,6 +15,11 @@ import urllib.request
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--end-to-end", action="store_true", help="also test the persisted-state command against PostgreSQL")
+    args = parser.parse_args()
+    if args.end_to_end and not os.environ.get("IDENTITY_TEST_DATABASE_URL"):
+        raise SystemExit("--end-to-end requires IDENTITY_TEST_DATABASE_URL")
     if importlib.metadata.version("scim2-server") != "0.8.0":
         raise SystemExit("Install scripts/scim-interop-requirements.txt first")
     server_bin = shutil.which("scim2-server")
@@ -46,8 +52,13 @@ def main():
             if not ready:
                 raise RuntimeError("independent SCIM server did not become ready")
             print("Target: python-scim/scim2-server 0.8.0; unmodified in-memory backend", flush=True)
+            packages = ["./pkg/adapter/scim"]
+            pattern = "TestSCIMInterop"
+            if args.end_to_end:
+                packages.append("./cmd/converge")
+                pattern += "|TestPersistedConvergenceEndToEnd"
             result = subprocess.run(
-                [go_bin, "test", "-race", "./pkg/adapter/scim", "-run", "TestSCIMInterop", "-count=1", "-v"],
+                [go_bin, "test", "-race", *packages, "-run", pattern, "-count=1", "-v"],
                 cwd=Path(__file__).resolve().parents[1], env=env, timeout=120,
             )
             return result.returncode

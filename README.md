@@ -210,6 +210,13 @@ tests skip. See [PostgreSQL recovery checks](docs/postgres-recovery.md).
 
 ## Target adapters
 
+`go run ./cmd/converge -subject person-001 -managed-attributes displayName`
+previews one saved projection. Add `-apply` to converge it against the configured
+SCIM target. Connection settings come from environment variables. See the
+[persisted convergence command](docs/persisted-convergence.md) for setup,
+locking, recovery, and an end-to-end test with PostgreSQL and a separate SCIM
+server.
+
 Implement reconcile.TargetAdapter:
 
 1. Observe reads the target account.

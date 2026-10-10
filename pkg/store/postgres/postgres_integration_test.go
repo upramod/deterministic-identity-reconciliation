@@ -263,3 +263,34 @@ func TestPostgresPositiveVersionFreshnessOrdering(t *testing.T) {
 		}
 	}
 }
+
+func TestPostgresLockedProjectionBlocksWritersAndReleasesOnFailure(t *testing.T) {
+	s, _, dsn := integrationStore(t)
+	requireCAS(t, s, 0, testProjection(1), true)
+	requireCAS(t, s, 0, testProjection(2), true)
+	other, _ := reopenStore(t, dsn)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	callbackFailure := errors.New("simulated target failure")
+	err := s.WithLockedProjection(ctx, "person-1", func(p reconcile.IdentityProjection) error {
+		if p.RowVersion != 1 {
+			t.Errorf("locked version=%d, want 1", p.RowVersion)
+		}
+		blocked, stop := context.WithTimeout(ctx, 150*time.Millisecond)
+		defer stop()
+		changed, err := other.CompareAndSetProjection(blocked, 1, testProjection(3))
+		if changed || err == nil || !errors.Is(blocked.Err(), context.DeadlineExceeded) {
+			t.Errorf("writer was not blocked: changed=%v err=%v context=%v", changed, err, blocked.Err())
+		}
+		return callbackFailure
+	})
+	if !errors.Is(err, callbackFailure) {
+		t.Fatalf("callback failure was lost: %v", err)
+	}
+	requireCAS(t, other, 1, testProjection(3), true)
+	called := false
+	err = s.WithLockedProjection(ctx, "missing-person", func(reconcile.IdentityProjection) error { called = true; return nil })
+	if !errors.Is(err, sql.ErrNoRows) || called {
+		t.Fatalf("missing row callback: called=%v err=%v", called, err)
+	}
+}

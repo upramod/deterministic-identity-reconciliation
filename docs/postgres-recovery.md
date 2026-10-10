@@ -10,7 +10,8 @@ precondition.
 Positive expected versions now use a single conditional UPDATE. A missing row,
 stale expected version, or non-newer freshness tuple returns false without a
 write. The update still checks version and freshness atomically in PostgreSQL.
-The Go package continues to accept `database/sql`; lib/pq is a test dependency.
+The store package continues to accept `database/sql`. Tests and the
+`cmd/converge` executable use lib/pq; store consumers can choose their own driver.
 
 Version zero retains the existing bootstrap convention: it can create a missing
 row at version zero or advance an existing version-zero row. It does not mean
