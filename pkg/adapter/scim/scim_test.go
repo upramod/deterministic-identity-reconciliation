@@ -224,10 +224,10 @@ func TestCreatePersistsCustomSubjectAttributeForReplay(t *testing.T) {
 				t.Errorf("unexpected filter %q", filter)
 			}
 			if created == nil || created["employeeNumber"] != "person-001" {
-				_, _ = w.Write([]byte("{\\\"totalResults\\\":0,\\\"Resources\\\":[]}"))
+				_, _ = w.Write([]byte("{\"totalResults\":0,\"Resources\":[]}"))
 				return
 			}
-			_, _ = w.Write([]byte("{\\\"totalResults\\\":1,\\\"Resources\\\":[{\\\"id\\\":\\\"scim-1\\\",\\\"employeeNumber\\\":\\\"person-001\\\",\\\"active\\\":true}]}"))
+			_, _ = w.Write([]byte("{\"totalResults\":1,\"Resources\":[{\"id\":\"scim-1\",\"employeeNumber\":\"person-001\",\"active\":true}]}"))
 		case http.MethodPost:
 			posts++
 			if err := json.NewDecoder(r.Body).Decode(&created); err != nil {
