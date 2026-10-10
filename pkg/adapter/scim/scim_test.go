@@ -145,6 +145,72 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 	}
 }
 
+func TestResponseAttributeNamesAreCaseInsensitive(t *testing.T) {
+	gets, patches := 0, 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			gets++
+			_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"ID":"scim-1","EXTERNALID":"person-001","ACTIVE":true,"Email":"person@example.test","META":{"Version":"W/\"v1\""}}]}`))
+		case http.MethodPatch:
+			patches++
+			if version := r.Header.Get("If-Match"); version != `W/"v1"` {
+				t.Errorf("If-Match = %q, want resource version", version)
+				w.WriteHeader(http.StatusPreconditionRequired)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected method %s", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, ManagedAttributes: []string{"email"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	desired := reconcile.DesiredState{
+		SubjectID:  "person-001",
+		Exists:     true,
+		Enabled:    false,
+		Attributes: map[string]string{"email": "person@example.test"},
+	}
+	result, err := reconcile.Converge(context.Background(), adapter, desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Action != reconcile.ConvergenceUpdated || gets != 2 || patches != 1 {
+		t.Fatalf("result=%#v gets=%d patches=%d", result, gets, patches)
+	}
+	if !result.Observed.Exists || !result.Observed.Enabled || result.Observed.Attributes["email"] != "person@example.test" {
+		t.Fatalf("unexpected observation: %#v", result.Observed)
+	}
+}
+
+func TestApplyRejectsCaseAmbiguousResponseAttributes(t *testing.T) {
+	mutations := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","ID":"other","active":true}]}`))
+			return
+		}
+		mutations++
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = adapter.Apply(context.Background(), reconcile.DesiredState{SubjectID: "person-001", Exists: false})
+	if err == nil || mutations != 0 {
+		t.Fatalf("ambiguous response: error=%v mutations=%d; want rejection without mutation", err, mutations)
+	}
+}
+
 // The provider changes the account after lookup, before the write. No sleeps
 // are needed: advancing its version before replying makes the race deterministic.
 func TestApplyRejectsConcurrentTargetChange(t *testing.T) {
