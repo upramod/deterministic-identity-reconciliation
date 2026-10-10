@@ -5,11 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -148,5 +151,67 @@ func TestPersistedConvergenceEndToEnd(t *testing.T) {
 	assertTarget(true, true)
 	if _, output, err := command("-apply", "-subject", subject+"-absent"); err == nil || !strings.Contains(output, "no persisted projection") {
 		t.Fatalf("missing projection accepted: %v %s", err, output)
+	}
+
+	customSubject := subject + "-employee"
+	customProjection := reconcile.IdentityProjection{
+		SubjectID:      customSubject,
+		Exists:         true,
+		Enabled:        true,
+		LifecycleState: reconcile.StateActive,
+		Attributes:     map[string]string{"displayName": "Custom-bound identity"},
+		EffectiveTime:  now,
+		SourceFactKey:  "synthetic-custom-fact",
+		SourceEventKey: "synthetic-custom-1",
+		Freshness:      reconcile.FreshnessTuple{SourceSequence: 1, ModificationTime: now, PhysicalEventKey: "synthetic-custom-1"},
+	}
+	persist(0, customProjection)
+	var customGets, customPosts atomic.Int32
+	customTarget := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		switch request.Method {
+		case http.MethodGet:
+			customGets.Add(1)
+			if got, want := request.URL.Query().Get("filter"), fmt.Sprintf(`employeeNumber eq "%s"`, customSubject); got != want {
+				t.Errorf("custom subject filter = %q, want %q", got, want)
+				_, _ = writer.Write([]byte(`{"totalResults":0,"Resources":[]}`))
+				return
+			}
+			writer.Header().Set("Content-Type", "application/scim+json")
+			_, _ = fmt.Fprintf(writer, `{"totalResults":1,"Resources":[{"id":"existing-custom","employeeNumber":%q,"active":true,"displayName":"Custom-bound identity"}]}`, customSubject)
+		case http.MethodPost:
+			customPosts.Add(1)
+			writer.WriteHeader(http.StatusCreated)
+		default:
+			t.Errorf("unexpected custom target request: %s %s", request.Method, request.URL)
+			writer.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer customTarget.Close()
+	custom := exec.CommandContext(ctx, binary,
+		"-subject", customSubject,
+		"-subject-attribute", "employeeNumber",
+		"-managed-attributes", "displayName",
+		"-apply",
+	)
+	custom.Env = append(os.Environ(),
+		"IDENTITY_DATABASE_URL="+u.String(),
+		"IDENTITY_SCIM_URL="+customTarget.URL,
+	)
+	customOutput, err := custom.CombinedOutput()
+	if err != nil {
+		t.Fatalf("custom subject binding: %v %s", err, customOutput)
+	}
+	var customResult report
+	if err := json.Unmarshal(customOutput, &customResult); err != nil {
+		t.Fatalf("decode custom subject report: %v: %s", err, customOutput)
+	}
+	if customResult.Action != "unchanged" || customResult.Mode != "apply" || customResult.SubjectID != customSubject {
+		t.Fatalf("custom subject binding: unexpected report %#v", customResult)
+	}
+	if got := customGets.Load(); got != 1 {
+		t.Fatalf("custom subject lookup requests = %d, want 1", got)
+	}
+	if got := customPosts.Load(); got != 0 {
+		t.Fatalf("custom subject create requests = %d, want 0", got)
 	}
 }
