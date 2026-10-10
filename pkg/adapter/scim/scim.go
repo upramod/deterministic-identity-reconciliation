@@ -91,6 +91,13 @@ func New(config Config) (*Adapter, error) {
 		if strings.EqualFold(attribute, subjectAttribute) {
 			return nil, fmt.Errorf("SubjectAttribute %q cannot also be a managed attribute", subjectAttribute)
 		}
+		// The adapter owns these protocol, identity, and lifecycle fields. A
+		// profile value is always a string, so allowing (for example) active
+		// here would replace the required Boolean during create and duplicate
+		// the lifecycle operation during patch.
+		if adapterOwnsAttribute(attribute) {
+			return nil, fmt.Errorf("managed attribute %q is owned by the SCIM adapter", attribute)
+		}
 		managed[attribute] = struct{}{}
 	}
 
@@ -371,6 +378,15 @@ func validAttributeName(value string) bool {
 		}
 	}
 	return true
+}
+
+func adapterOwnsAttribute(value string) bool {
+	switch strings.ToLower(value) {
+	case "schemas", "username", "externalid", "active", "id", "meta":
+		return true
+	default:
+		return false
+	}
 }
 
 func isLetter(value rune) bool {
