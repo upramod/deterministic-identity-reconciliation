@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject SCIM configuration that also treats the stable subject-binding
+  attribute as a mutable managed profile field, including case-only aliases.
 - Let the persisted-state convergence command select the SCIM subject binding
   attribute instead of always assuming `externalId`.
 - Reject reused PostgreSQL physical-event keys when their immutable content
