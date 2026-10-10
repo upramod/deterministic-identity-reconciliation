@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject reused PostgreSQL physical-event keys when their immutable content
+  differs, while preserving no-op idempotency for exact redelivery.
 - Persist a configured custom SCIM subject attribute during User creation so
   read-before-write replay finds the created identity without requiring the
   binding key to be duplicated in the managed profile-attribute list.
