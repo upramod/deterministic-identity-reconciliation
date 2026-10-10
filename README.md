@@ -244,8 +244,12 @@ owned profile fields. The binding attribute cannot also be managed, including
 under a differently cased spelling, because SCIM attribute names are
 case-insensitive and a profile update must not move the stable lookup key. This
 guarantees that a successful create can be found by the next reconciliation
-instead of being mistaken for an absent account. The persisted-state command
-exposes the same choice through `-subject-attribute`.
+instead of being mistaken for an absent account. Adapter-owned protocol,
+identity, and lifecycle fields (`schemas`, `userName`, `externalId`, `active`,
+`id`, and `meta`) are also excluded from managed profile attributes so string
+profile values cannot overwrite their SCIM types or semantics. The
+persisted-state command exposes the same subject choice through
+`-subject-attribute`.
 
 ## Repository layout
 
