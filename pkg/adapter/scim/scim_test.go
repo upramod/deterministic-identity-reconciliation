@@ -189,6 +189,64 @@ func TestResponseAttributeNamesAreCaseInsensitive(t *testing.T) {
 	}
 }
 
+func TestDesiredManagedAttributeNamesAreCaseInsensitive(t *testing.T) {
+	currentEmail := "old@example.test"
+	patches := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			_, _ = fmt.Fprintf(w, `{"totalResults":1,"Resources":[{"id":"scim-1","externalId":"person-001","active":true,"EMAIL":%q}]}`, currentEmail)
+		case http.MethodPatch:
+			patches++
+			var body struct {
+				Operations []struct {
+					Path  string `json:"path"`
+					Value any    `json:"value"`
+				} `json:"Operations"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			for _, operation := range body.Operations {
+				if strings.EqualFold(operation.Path, "email") {
+					currentEmail, _ = operation.Value.(string)
+				}
+			}
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected method %s", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, ManagedAttributes: []string{"Email"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	desired := reconcile.DesiredState{
+		SubjectID:  "person-001",
+		Exists:     true,
+		Enabled:    true,
+		Attributes: map[string]string{"email": "new@example.test"},
+	}
+
+	result, err := reconcile.Converge(context.Background(), adapter, desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Action != reconcile.ConvergenceUpdated {
+		t.Fatalf("first convergence action = %q, want updated", result.Action)
+	}
+	result, err = reconcile.Converge(context.Background(), adapter, desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Action != reconcile.ConvergenceUnchanged || patches != 1 || currentEmail != "new@example.test" {
+		t.Fatalf("second convergence result=%#v patches=%d email=%q; want unchanged after one patch", result, patches, currentEmail)
+	}
+}
+
 func TestApplyRejectsCaseAmbiguousResponseAttributes(t *testing.T) {
 	mutations := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
