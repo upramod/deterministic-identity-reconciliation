@@ -207,7 +207,9 @@ func TestPostgresPhysicalEventDeduplication(t *testing.T) {
 	if inserted, err := s.InsertPhysicalEvent(ctx, fact); err != nil || !inserted {
 		t.Fatalf("initial insert = %v, %v", inserted, err)
 	}
-	if inserted, err := s.InsertPhysicalEvent(ctx, fact); err != nil || inserted {
+	replay := fact
+	replay.ReceivedAt = fact.ReceivedAt.Add(time.Minute)
+	if inserted, err := s.InsertPhysicalEvent(ctx, replay); err != nil || inserted {
 		t.Fatalf("exact replay = %v, %v", inserted, err)
 	}
 	conflict := fact
