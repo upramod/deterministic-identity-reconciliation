@@ -223,9 +223,12 @@ desired absence. Delete mode still requires physical absence. Observations
 continue to report physical existence, and rehire still enables the account.
 See [lost-response recovery](docs/scim-recovery.md) for a reproducible test.
 
-The first integration target is a generic SCIM-style account adapter. Provider
-specific adapters should be added only after the generic contract has real
-interoperability tests.
+The generic SCIM Users adapter is tested against the unmodified
+`python-scim/scim2-server` 0.8.0 implementation in a separate process. CI covers
+the account lifecycle, lost-response recovery, and a concurrent target change.
+See [SCIM interoperability](docs/scim-interoperability.md) for the pinned setup
+and limits. Compatibility with other providers still needs provider-specific
+tests.
 
 ## Repository layout
 
