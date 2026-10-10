@@ -192,7 +192,11 @@ func Converge(ctx context.Context, adapter TargetAdapter, desired DesiredState) 
 	if err != nil {
 		return ConvergenceResult{}, fmt.Errorf("observe %q: %w", desired.SubjectID, err)
 	}
-	if StateEquivalent(observed, desired) {
+	equivalent := StateEquivalent(observed, desired)
+	if comparator, ok := adapter.(TargetStateComparator); ok {
+		equivalent = comparator.StateEquivalent(observed, desired)
+	}
+	if equivalent {
 		return ConvergenceResult{
 			Action:   ConvergenceUnchanged,
 			Observed: observed,

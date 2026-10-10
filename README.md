@@ -209,6 +209,13 @@ Implement reconcile.TargetAdapter:
 2. The engine compares observed and desired state.
 3. Apply runs only when state differs.
 
+Adapters can implement `reconcile.TargetStateComparator` when their target
+represents the desired state differently. The SCIM adapter uses it for default
+disable-mode deprovisioning: an absent or retained disabled account satisfies
+desired absence. Delete mode still requires physical absence. Observations
+continue to report physical existence, and rehire still enables the account.
+See [lost-response recovery](docs/scim-recovery.md) for a reproducible test.
+
 The first integration target is a generic SCIM-style account adapter. Provider
 specific adapters should be added only after the generic contract has real
 interoperability tests.
