@@ -119,6 +119,14 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 	}); err == nil {
 		t.Fatalf("expected mutable subject binding to be rejected")
 	}
+	for _, attribute := range []string{"schemas", "USERNAME", "externalId", "Active", "id", "meta"} {
+		if _, err := New(Config{
+			BaseURL:           "https://example.test",
+			ManagedAttributes: []string{attribute},
+		}); err == nil {
+			t.Errorf("expected adapter-owned attribute %q to be rejected", attribute)
+		}
+	}
 }
 
 // The provider changes the account after lookup, before the write. No sleeps
