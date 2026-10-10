@@ -85,6 +85,12 @@ func New(config Config) (*Adapter, error) {
 		if !validAttributeName(attribute) {
 			return nil, fmt.Errorf("invalid managed attribute %q", attribute)
 		}
+		// SCIM attribute names are case-insensitive. The lookup binding must
+		// remain immutable from the adapter's profile-attribute writes, or a
+		// create or patch can make the resource unreachable by SubjectID.
+		if strings.EqualFold(attribute, subjectAttribute) {
+			return nil, fmt.Errorf("SubjectAttribute %q cannot also be a managed attribute", subjectAttribute)
+		}
 		managed[attribute] = struct{}{}
 	}
 
