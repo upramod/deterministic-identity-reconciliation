@@ -131,11 +131,18 @@ func (a *Adapter) Observe(ctx context.Context, subjectID string) (reconcile.Obse
 		}, nil
 	}
 
-	active := scimActive(resource)
+	active, err := scimActive(resource)
+	if err != nil {
+		return reconcile.ObservedState{}, err
+	}
+	attributes, err := a.managedValues(resource)
+	if err != nil {
+		return reconcile.ObservedState{}, err
+	}
 	return reconcile.ObservedState{
 		Exists:     true,
 		Enabled:    active,
-		Attributes: a.managedValues(resource),
+		Attributes: attributes,
 	}, nil
 }
 
@@ -164,16 +171,32 @@ func (a *Adapter) Apply(ctx context.Context, desired reconcile.DesiredState) err
 		if resource == nil {
 			return a.create(ctx, desired)
 		}
-		return a.patch(ctx, resourceID(resource), desired.Enabled, desired.Attributes, resourceVersion(resource))
+		id, err := resourceID(resource)
+		if err != nil {
+			return err
+		}
+		version, err := resourceVersion(resource)
+		if err != nil {
+			return err
+		}
+		return a.patch(ctx, id, desired.Enabled, desired.Attributes, version)
 	}
 
 	if resource == nil {
 		return nil
 	}
-	if a.deprovisionMode == DeprovisionDelete {
-		return a.request(ctx, http.MethodDelete, a.userURL(resourceID(resource)), nil, nil, resourceVersion(resource))
+	id, err := resourceID(resource)
+	if err != nil {
+		return err
 	}
-	return a.patch(ctx, resourceID(resource), false, nil, resourceVersion(resource))
+	version, err := resourceVersion(resource)
+	if err != nil {
+		return err
+	}
+	if a.deprovisionMode == DeprovisionDelete {
+		return a.request(ctx, http.MethodDelete, a.userURL(id), nil, nil, version)
+	}
+	return a.patch(ctx, id, false, nil, version)
 }
 
 func (a *Adapter) find(ctx context.Context, subjectID string) (map[string]any, error) {
@@ -208,7 +231,11 @@ func (a *Adapter) find(ctx context.Context, subjectID string) (map[string]any, e
 	if len(response.Resources) == 0 {
 		return nil, nil
 	}
-	if resourceID(response.Resources[0]) == "" {
+	id, err := resourceID(response.Resources[0])
+	if err != nil {
+		return nil, err
+	}
+	if id == "" {
 		return nil, errors.New("SCIM resource did not include an id")
 	}
 	return response.Resources[0], nil
@@ -317,33 +344,69 @@ func (a *Adapter) userURL(id string) string {
 	return result.String()
 }
 
-func (a *Adapter) managedValues(resource map[string]any) map[string]string {
+func (a *Adapter) managedValues(resource map[string]any) (map[string]string, error) {
 	values := make(map[string]string)
 	for attribute := range a.managedAttributes {
-		if value, ok := scalarString(resource[attribute]); ok {
+		candidate, found, err := responseAttribute(resource, attribute)
+		if err != nil {
+			return nil, err
+		}
+		if value, ok := scalarString(candidate); found && ok {
 			values[attribute] = value
 		}
 	}
-	return values
+	return values, nil
 }
 
-func resourceID(resource map[string]any) string {
-	value, _ := resource["id"].(string)
-	return strings.TrimSpace(value)
-}
-
-func resourceVersion(resource map[string]any) string {
-	meta, _ := resource["meta"].(map[string]any)
-	version, _ := meta["version"].(string)
-	return strings.TrimSpace(version)
-}
-
-func scimActive(resource map[string]any) bool {
-	active, ok := resource["active"].(bool)
-	if !ok {
-		return true
+func resourceID(resource map[string]any) (string, error) {
+	value, _, err := responseAttribute(resource, "id")
+	if err != nil {
+		return "", err
 	}
-	return active
+	id, _ := value.(string)
+	return strings.TrimSpace(id), nil
+}
+
+func resourceVersion(resource map[string]any) (string, error) {
+	value, _, err := responseAttribute(resource, "meta")
+	if err != nil {
+		return "", err
+	}
+	meta, _ := value.(map[string]any)
+	value, _, err = responseAttribute(meta, "version")
+	if err != nil {
+		return "", err
+	}
+	version, _ := value.(string)
+	return strings.TrimSpace(version), nil
+}
+
+func scimActive(resource map[string]any) (bool, error) {
+	value, _, err := responseAttribute(resource, "active")
+	if err != nil {
+		return false, err
+	}
+	active, ok := value.(bool)
+	if !ok {
+		return true, nil
+	}
+	return active, nil
+}
+
+func responseAttribute(resource map[string]any, attribute string) (any, bool, error) {
+	var value any
+	found := false
+	for key, candidate := range resource {
+		if !strings.EqualFold(key, attribute) {
+			continue
+		}
+		if found {
+			return nil, false, fmt.Errorf("SCIM response contains ambiguous case variants of attribute %q", attribute)
+		}
+		value = candidate
+		found = true
+	}
+	return value, found, nil
 }
 
 func scalarString(value any) (string, bool) {
