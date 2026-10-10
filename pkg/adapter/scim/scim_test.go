@@ -213,7 +213,7 @@ func TestApplyRejectsCaseAmbiguousResponseAttributes(t *testing.T) {
 
 func TestApplyRejectsMalformedVersionMetadata(t *testing.T) {
 	for name, resource := range map[string]string{
-		"meta is not an object": `{"id":"scim-1","active":true,"meta":"W/\"v1\""}`,
+		"meta is not an object":    `{"id":"scim-1","active":true,"meta":"W/\"v1\""}`,
 		"version is not a string": `{"id":"scim-1","active":true,"meta":{"version":7}}`,
 	} {
 		t.Run(name, func(t *testing.T) {
