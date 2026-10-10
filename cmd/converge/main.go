@@ -37,6 +37,7 @@ func run(args []string, getenv func(string) string, out, diagnostic io.Writer) e
 	flags := flag.NewFlagSet("converge", flag.ContinueOnError)
 	flags.SetOutput(diagnostic)
 	subject := flags.String("subject", "", "subject ID in canonical_state")
+	subjectAttribute := flags.String("subject-attribute", "externalId", "SCIM attribute that binds the persisted subject ID")
 	apply := flags.Bool("apply", false, "apply target changes; default is read-only preview")
 	managed := flags.String("managed-attributes", "", "comma-separated owned scalar SCIM attributes")
 	mode := flags.String("deprovision-mode", "disable", "disable or delete")
@@ -63,7 +64,7 @@ func run(args []string, getenv func(string) string, out, diagnostic io.Writer) e
 			allowed[attribute] = true
 		}
 	}
-	adapter, err := scim.New(scim.Config{BaseURL: getenv("IDENTITY_SCIM_URL"), Token: getenv("IDENTITY_SCIM_TOKEN"), ManagedAttributes: attributes, DeprovisionMode: scim.DeprovisionMode(*mode)})
+	adapter, err := scim.New(scim.Config{BaseURL: getenv("IDENTITY_SCIM_URL"), Token: getenv("IDENTITY_SCIM_TOKEN"), SubjectAttribute: *subjectAttribute, ManagedAttributes: attributes, DeprovisionMode: scim.DeprovisionMode(*mode)})
 	if err != nil {
 		return err
 	}
