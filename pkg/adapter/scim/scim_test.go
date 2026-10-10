@@ -211,6 +211,60 @@ func TestPatchBodyUsesSCIMOperationShape(t *testing.T) {
 	}
 }
 
+func TestCreatePersistsCustomSubjectAttributeForReplay(t *testing.T) {
+	var mu sync.Mutex
+	created := map[string]any(nil)
+	posts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch r.Method {
+		case http.MethodGet:
+			if filter := r.URL.Query().Get("filter"); filter != `employeeNumber eq "person-001"` {
+				t.Errorf("unexpected filter %q", filter)
+			}
+			if created == nil || created["employeeNumber"] != "person-001" {
+				_, _ = w.Write([]byte("{\"totalResults\":0,\"Resources\":[]}"))
+				return
+			}
+			_, _ = w.Write([]byte("{\"totalResults\":1,\"Resources\":[{\"id\":\"scim-1\",\"employeeNumber\":\"person-001\",\"active\":true}]}"))
+		case http.MethodPost:
+			posts++
+			if err := json.NewDecoder(r.Body).Decode(&created); err != nil {
+				t.Error(err)
+			}
+			w.WriteHeader(http.StatusCreated)
+		default:
+			t.Errorf("unexpected method %s", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, SubjectAttribute: "employeeNumber"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	desired := reconcile.DesiredState{SubjectID: "person-001", Exists: true, Enabled: true}
+	for attempt, want := range []reconcile.ConvergenceAction{reconcile.ConvergenceUpdated, reconcile.ConvergenceUnchanged} {
+		result, err := reconcile.Converge(context.Background(), adapter, desired)
+		if err != nil {
+			t.Fatalf("attempt %d: %v", attempt+1, err)
+		}
+		if result.Action != want {
+			t.Fatalf("attempt %d action = %s, want %s", attempt+1, result.Action, want)
+		}
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if posts != 1 {
+		t.Fatalf("create requests = %d, want 1", posts)
+	}
+	if created["employeeNumber"] != "person-001" {
+		t.Fatalf("custom subject attribute was not persisted: %#v", created)
+	}
+}
+
 func TestApplyRejectsIncompleteOrAmbiguousLookup(t *testing.T) {
 	for _, response := range []struct {
 		name string

@@ -205,13 +205,14 @@ func (a *Adapter) create(ctx context.Context, desired reconcile.DesiredState) er
 		"externalId": desired.SubjectID,
 		"active":     desired.Enabled,
 	}
+	// The configured lookup key is identity binding, not an optional profile
+	// attribute. Always persist it on creation so the next lookup can find the
+	// resource even when callers exclude it from managed fields.
+	user[a.subjectAttribute] = desired.SubjectID
 	for key, value := range desired.Attributes {
 		if _, managed := a.managedAttributes[key]; managed {
 			user[key] = value
 		}
-	}
-	if _, managed := a.managedAttributes[a.subjectAttribute]; managed {
-		user[a.subjectAttribute] = desired.SubjectID
 	}
 	return a.request(ctx, http.MethodPost, a.resourceURL("Users").String(), user, nil)
 }

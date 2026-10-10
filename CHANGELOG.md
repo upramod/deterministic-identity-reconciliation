@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Persist a configured custom SCIM subject attribute during User creation so
+  read-before-write replay finds the created identity without requiring the
+  binding key to be duplicated in the managed profile-attribute list.
 - Add a preview-first command for applying one persisted projection to SCIM.
   Apply mode reads under a PostgreSQL row lock held through target convergence.
 - Add end-to-end tests with real PostgreSQL, an independent SCIM server, and
