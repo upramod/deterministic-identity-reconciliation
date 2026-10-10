@@ -211,7 +211,6 @@ func TestPatchBodyUsesSCIMOperationShape(t *testing.T) {
 	}
 }
 
-
 func TestCreatePersistsCustomSubjectAttributeForReplay(t *testing.T) {
 	var mu sync.Mutex
 	created := map[string]any(nil)
