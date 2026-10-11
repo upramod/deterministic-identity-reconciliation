@@ -45,7 +45,7 @@ type Adapter struct {
 	baseURL           *url.URL
 	token             string
 	subjectAttribute  string
-	managedAttributes map[string]struct{}
+	managedAttributes map[string]string
 	deprovisionMode   DeprovisionMode
 	httpClient        *http.Client
 }
@@ -82,7 +82,7 @@ func New(config Config) (*Adapter, error) {
 		return nil, fmt.Errorf("unsupported DeprovisionMode %q", deprovisionMode)
 	}
 
-	managed := make(map[string]struct{}, len(config.ManagedAttributes))
+	managed := make(map[string]string, len(config.ManagedAttributes))
 	for _, attribute := range config.ManagedAttributes {
 		attribute = strings.TrimSpace(attribute)
 		if !validAttributeName(attribute) {
@@ -101,7 +101,11 @@ func New(config Config) (*Adapter, error) {
 		if adapterOwnsAttribute(attribute) {
 			return nil, fmt.Errorf("managed attribute %q is owned by the SCIM adapter", attribute)
 		}
-		managed[attribute] = struct{}{}
+		normalized := strings.ToLower(attribute)
+		if previous, exists := managed[normalized]; exists {
+			return nil, fmt.Errorf("managed attributes %q and %q are the same SCIM attribute", previous, attribute)
+		}
+		managed[normalized] = attribute
 	}
 
 	httpClient := config.HTTPClient
@@ -154,6 +158,11 @@ func (a *Adapter) StateEquivalent(observed reconcile.ObservedState, desired reco
 	if !desired.Exists && a.deprovisionMode == DeprovisionDisable {
 		return !observed.Exists || !observed.Enabled
 	}
+	attributes, err := a.managedDesiredValues(desired.Attributes)
+	if err != nil {
+		return false
+	}
+	desired.Attributes = attributes
 	return reconcile.StateEquivalent(observed, desired)
 }
 
@@ -242,6 +251,10 @@ func (a *Adapter) find(ctx context.Context, subjectID string) (map[string]any, e
 }
 
 func (a *Adapter) create(ctx context.Context, desired reconcile.DesiredState) error {
+	attributes, err := a.managedDesiredValues(desired.Attributes)
+	if err != nil {
+		return err
+	}
 	user := map[string]any{
 		"schemas":    []string{coreUserSchema},
 		"userName":   desired.SubjectID,
@@ -252,10 +265,8 @@ func (a *Adapter) create(ctx context.Context, desired reconcile.DesiredState) er
 	// attribute. Always persist it on creation so the next lookup can find the
 	// resource even when callers exclude it from managed fields.
 	user[a.subjectAttribute] = desired.SubjectID
-	for key, value := range desired.Attributes {
-		if _, managed := a.managedAttributes[key]; managed {
-			user[key] = value
-		}
+	for key, value := range attributes {
+		user[key] = value
 	}
 	return a.request(ctx, http.MethodPost, a.resourceURL("Users").String(), user, nil)
 }
@@ -263,6 +274,10 @@ func (a *Adapter) create(ctx context.Context, desired reconcile.DesiredState) er
 func (a *Adapter) patch(ctx context.Context, id string, enabled bool, attributes map[string]string, version string) error {
 	if id == "" {
 		return errors.New("SCIM resource id is required")
+	}
+	attributes, err := a.managedDesiredValues(attributes)
+	if err != nil {
+		return err
 	}
 	operations := []map[string]any{
 		{
@@ -272,9 +287,6 @@ func (a *Adapter) patch(ctx context.Context, id string, enabled bool, attributes
 		},
 	}
 	for key, value := range attributes {
-		if _, managed := a.managedAttributes[key]; !managed {
-			continue
-		}
 		operations = append(operations, map[string]any{
 			"op":    "replace",
 			"path":  key,
@@ -349,7 +361,7 @@ func (a *Adapter) userURL(id string) string {
 
 func (a *Adapter) managedValues(resource map[string]any) (map[string]string, error) {
 	values := make(map[string]string)
-	for attribute := range a.managedAttributes {
+	for _, attribute := range a.managedAttributes {
 		candidate, found, err := responseAttribute(resource, attribute)
 		if err != nil {
 			return nil, err
@@ -357,6 +369,24 @@ func (a *Adapter) managedValues(resource map[string]any) (map[string]string, err
 		if value, ok := scalarString(candidate); found && ok {
 			values[attribute] = value
 		}
+	}
+	return values, nil
+}
+
+func (a *Adapter) managedDesiredValues(attributes map[string]string) (map[string]string, error) {
+	values := make(map[string]string)
+	seen := make(map[string]string)
+	for attribute, value := range attributes {
+		normalized := strings.ToLower(attribute)
+		canonical, managed := a.managedAttributes[normalized]
+		if !managed {
+			continue
+		}
+		if previous, exists := seen[normalized]; exists {
+			return nil, fmt.Errorf("desired attributes %q and %q are the same SCIM attribute", previous, attribute)
+		}
+		seen[normalized] = attribute
+		values[canonical] = value
 	}
 	return values, nil
 }
