@@ -251,7 +251,10 @@ guarantees that a successful create can be found by the next reconciliation
 instead of being mistaken for an absent account. Adapter-owned protocol,
 identity, and lifecycle fields (`schemas`, `userName`, `externalId`, `active`,
 `id`, and `meta`) are also excluded from managed profile attributes so string
-profile values cannot overwrite their SCIM types or semantics. The
+profile values cannot overwrite their SCIM types or semantics. Configured and
+desired managed-attribute names are matched case-insensitively and emitted
+using the configured spelling; case-duplicate configuration or desired input
+is rejected rather than producing an ambiguous request. The
 persisted-state command exposes the same subject choice through
 `-subject-attribute`.
 
