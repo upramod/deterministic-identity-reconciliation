@@ -143,6 +143,12 @@ func TestNewRejectsUnsafeConfiguration(t *testing.T) {
 			t.Errorf("expected adapter-owned attribute %q to be rejected", attribute)
 		}
 	}
+	if _, err := New(Config{
+		BaseURL:           "https://example.test",
+		ManagedAttributes: []string{"Email", "email"},
+	}); err == nil {
+		t.Fatal("expected case-duplicate managed attributes to be rejected")
+	}
 }
 
 func TestResponseAttributeNamesAreCaseInsensitive(t *testing.T) {
@@ -244,6 +250,72 @@ func TestDesiredManagedAttributeNamesAreCaseInsensitive(t *testing.T) {
 	}
 	if result.Action != reconcile.ConvergenceUnchanged || patches != 1 || currentEmail != "new@example.test" {
 		t.Fatalf("second convergence result=%#v patches=%d email=%q; want unchanged after one patch", result, patches, currentEmail)
+	}
+}
+
+func TestCreateMapsDesiredManagedAttributeCase(t *testing.T) {
+	var created map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			_, _ = w.Write([]byte(`{"totalResults":0,"Resources":[]}`))
+		case http.MethodPost:
+			if err := json.NewDecoder(r.Body).Decode(&created); err != nil {
+				t.Fatal(err)
+			}
+			w.WriteHeader(http.StatusCreated)
+		default:
+			t.Errorf("unexpected method %s", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, ManagedAttributes: []string{"Email"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = adapter.Apply(context.Background(), reconcile.DesiredState{
+		SubjectID:  "person-001",
+		Exists:     true,
+		Enabled:    true,
+		Attributes: map[string]string{"email": "new@example.test"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created["Email"] != "new@example.test" {
+		t.Fatalf("created user did not use configured attribute spelling: %#v", created)
+	}
+}
+
+func TestApplyRejectsAmbiguousDesiredManagedAttributes(t *testing.T) {
+	mutations := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte(`{"totalResults":1,"Resources":[{"id":"scim-1","active":true,"email":"old@example.test"}]}`))
+			return
+		}
+		mutations++
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	adapter, err := New(Config{BaseURL: server.URL, ManagedAttributes: []string{"email"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = adapter.Apply(context.Background(), reconcile.DesiredState{
+		SubjectID: "person-001",
+		Exists:    true,
+		Enabled:   true,
+		Attributes: map[string]string{
+			"email": "first@example.test",
+			"Email": "second@example.test",
+		},
+	})
+	if err == nil || mutations != 0 {
+		t.Fatalf("ambiguous desired attributes: error=%v mutations=%d; want rejection without mutation", err, mutations)
 	}
 }
 
